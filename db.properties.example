@@ -1,5 +1,5 @@
 db.host=localhost
 db.port=1433
 db.name=HotelDB
-db.user=hotel_user
-db.password=Hotel#2026
+db.user=TU_USUARIO
+db.password=TU_CONTRASEÑA
