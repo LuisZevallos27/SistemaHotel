@@ -1,0 +1,14 @@
+# Maven
+target/
+
+# NetBeans
+nbproject/private/
+nbactions.xml
+nb-configuration.xml
+
+# Credenciales locales (nunca subir)
+db.properties
+
+# Varios
+*.class
+*.log
