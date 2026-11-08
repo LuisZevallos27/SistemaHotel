@@ -1,9 +1,11 @@
-
 package hotel;
+
+import hotel.vista.FrmClientes;
+import javax.swing.SwingUtilities;
 
 public class SistemaHotel {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        SwingUtilities.invokeLater(() -> new FrmClientes().setVisible(true));
     }
 }
