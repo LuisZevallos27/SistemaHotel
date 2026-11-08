@@ -10,7 +10,7 @@ import java.util.Properties;
 /**
  * PATRÓN SINGLETON: una única instancia concentra la configuración de la BD.
  */
-public final class ConexionBD {
+public final class ConexionBD implements ProveedorConexion {
 
     private static ConexionBD instancia;
     private final String url;
@@ -23,7 +23,7 @@ public final class ConexionBD {
             p.load(in);
         } catch (IOException e) {
             throw new IllegalStateException(
-                "No se encontró db.properties en la raíz del proyecto (junto al pom.xml).", e);
+                    "No se encontró db.properties en la raíz del proyecto (junto al pom.xml).", e);
         }
 
         String host = p.getProperty("db.host", "localhost").trim();
@@ -42,7 +42,7 @@ public final class ConexionBD {
             sb.append(";instanceName=").append(instancia);
         }
         sb.append(";databaseName=").append(bd)
-          .append(";encrypt=true;trustServerCertificate=true");
+                .append(";encrypt=true;trustServerCertificate=true");
         this.url = sb.toString();
     }
 
@@ -53,6 +53,7 @@ public final class ConexionBD {
         return instancia;
     }
 
+    @Override
     public Connection getConexion() throws SQLException {
         return DriverManager.getConnection(url, usuario, clave);
     }

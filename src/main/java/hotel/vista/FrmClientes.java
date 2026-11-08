@@ -1,6 +1,5 @@
 package hotel.vista;
 
-import hotel.dao.ClienteDAOImpl;
 import hotel.modelo.Cliente;
 import hotel.servicio.ClienteService;
 import hotel.servicio.NegocioException;
@@ -22,10 +21,10 @@ import javax.swing.table.DefaultTableModel;
 
 public class FrmClientes extends JFrame {
 
-    private final ClienteService servicio = new ClienteService(new ClienteDAOImpl());
+    private final ClienteService servicio;
 
-    private final JComboBox<String> cboTipoDoc
-            = new JComboBox<>(new String[]{"DNI", "CE", "PASAPORTE", "RUC"});
+    private final JComboBox<String> cboTipoDoc =
+            new JComboBox<>(new String[]{"DNI", "CE", "PASAPORTE", "RUC"});
     private final JTextField txtDocumento = new JTextField(15);
     private final JTextField txtNombres = new JTextField(15);
     private final JTextField txtApellidos = new JTextField(15);
@@ -35,7 +34,7 @@ public class FrmClientes extends JFrame {
 
     private final DefaultTableModel modelo = new DefaultTableModel(
             new String[]{"ID", "Tipo", "Documento", "Nombres", "Apellidos",
-                "Teléfono", "Correo", "Nacionalidad"}, 0) {
+                         "Teléfono", "Correo", "Nacionalidad"}, 0) {
         @Override
         public boolean isCellEditable(int fila, int columna) {
             return false;
@@ -44,7 +43,9 @@ public class FrmClientes extends JFrame {
     private final JTable tabla = new JTable(modelo);
     private int idSeleccionado = 0;
 
-    public FrmClientes() {
+    public FrmClientes(ClienteService servicio) {
+        this.servicio = servicio;
+
         setTitle("Gestión de Clientes - Hotel");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(900, 520);
@@ -53,18 +54,12 @@ public class FrmClientes extends JFrame {
 
         JPanel form = new JPanel(new GridLayout(6, 2, 5, 5));
         form.setBorder(BorderFactory.createTitledBorder("Datos del cliente"));
-        form.add(new JLabel("Tipo de documento:"));
-        form.add(cboTipoDoc);
-        form.add(new JLabel("Documento:"));
-        form.add(txtDocumento);
-        form.add(new JLabel("Nombres:"));
-        form.add(txtNombres);
-        form.add(new JLabel("Apellidos:"));
-        form.add(txtApellidos);
-        form.add(new JLabel("Teléfono:"));
-        form.add(txtTelefono);
-        form.add(new JLabel("Correo:"));
-        form.add(txtCorreo);
+        form.add(new JLabel("Tipo de documento:")); form.add(cboTipoDoc);
+        form.add(new JLabel("Documento:"));         form.add(txtDocumento);
+        form.add(new JLabel("Nombres:"));           form.add(txtNombres);
+        form.add(new JLabel("Apellidos:"));         form.add(txtApellidos);
+        form.add(new JLabel("Teléfono:"));          form.add(txtTelefono);
+        form.add(new JLabel("Correo:"));            form.add(txtCorreo);
 
         JPanel nac = new JPanel(new FlowLayout(FlowLayout.LEFT));
         nac.add(new JLabel("Nacionalidad:"));

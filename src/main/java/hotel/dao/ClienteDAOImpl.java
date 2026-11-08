@@ -1,6 +1,6 @@
 package hotel.dao;
 
-import hotel.config.ConexionBD;
+import hotel.config.ProveedorConexion;
 import hotel.modelo.Cliente;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,13 +11,19 @@ import java.util.List;
 
 public class ClienteDAOImpl implements ClienteDAO {
 
+    private final ProveedorConexion proveedor;
+
+    public ClienteDAOImpl(ProveedorConexion proveedor) {
+        this.proveedor = proveedor;
+    }
+
     @Override
     public List<Cliente> listar() throws SQLException {
         String sql = "SELECT idCliente, tipoDocumento, documento, nombres, apellidos, "
                 + "telefono, correo, nacionalidad FROM Cliente "
                 + "WHERE activo = 1 ORDER BY apellidos, nombres";
         List<Cliente> lista = new ArrayList<>();
-        try (Connection cn = ConexionBD.getInstancia().getConexion(); PreparedStatement ps = cn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Cliente c = new Cliente();
                 c.setIdCliente(rs.getInt("idCliente"));
@@ -40,7 +46,7 @@ public class ClienteDAOImpl implements ClienteDAO {
         String sql = "INSERT INTO Cliente (tipoDocumento, documento, nombres, apellidos, "
                 + "telefono, correo, nacionalidad, idNivel) VALUES (?,?,?,?,?,?,?, "
                 + "(SELECT idNivel FROM NivelFidelidad WHERE nombre = N'Bronce'))";
-        try (Connection cn = ConexionBD.getInstancia().getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
+        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, c.getTipoDocumento());
             ps.setString(2, c.getDocumento());
             ps.setString(3, c.getNombres());
@@ -56,7 +62,7 @@ public class ClienteDAOImpl implements ClienteDAO {
     public void actualizar(Cliente c) throws SQLException {
         String sql = "UPDATE Cliente SET tipoDocumento=?, documento=?, nombres=?, apellidos=?, "
                 + "telefono=?, correo=?, nacionalidad=? WHERE idCliente=?";
-        try (Connection cn = ConexionBD.getInstancia().getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
+        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, c.getTipoDocumento());
             ps.setString(2, c.getDocumento());
             ps.setString(3, c.getNombres());
@@ -72,7 +78,7 @@ public class ClienteDAOImpl implements ClienteDAO {
     // Baja lógica: el cliente puede tener reservas e historial, por eso no se borra la fila.
     @Override
     public void desactivar(int idCliente) throws SQLException {
-        try (Connection cn = ConexionBD.getInstancia().getConexion(); PreparedStatement ps = cn.prepareStatement(
+        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(
                 "UPDATE Cliente SET activo = 0 WHERE idCliente = ?")) {
             ps.setInt(1, idCliente);
             ps.executeUpdate();
@@ -82,7 +88,7 @@ public class ClienteDAOImpl implements ClienteDAO {
     @Override
     public boolean existeDocumento(String documento, int idExcluido) throws SQLException {
         String sql = "SELECT COUNT(*) FROM Cliente WHERE documento = ? AND idCliente <> ?";
-        try (Connection cn = ConexionBD.getInstancia().getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
+        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, documento);
             ps.setInt(2, idExcluido);
             try (ResultSet rs = ps.executeQuery()) {
