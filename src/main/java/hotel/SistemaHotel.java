@@ -1,17 +1,23 @@
 package hotel;
 
 import hotel.config.ConexionBD;
-import hotel.dao.ClienteDAO;
+import hotel.config.ProveedorConexion;
 import hotel.dao.ClienteDAOImpl;
+import hotel.documento.RegistroFabricasDocumento;
 import hotel.servicio.ClienteService;
+import hotel.servicio.ClienteServiceImpl;
 import hotel.vista.FrmClientes;
 import javax.swing.SwingUtilities;
 
 public class SistemaHotel {
 
     public static void main(String[] args) {
-        ClienteDAO dao = new ClienteDAOImpl(ConexionBD.getInstancia());
-        ClienteService servicio = new ClienteService(dao);
-        SwingUtilities.invokeLater(() -> new FrmClientes(servicio).setVisible(true));
+        ProveedorConexion conexion = ConexionBD.getInstancia();
+
+        ClienteDAOImpl clienteDao = new ClienteDAOImpl(conexion);
+        ClienteService clientes = new ClienteServiceImpl(
+                clienteDao, clienteDao, new RegistroFabricasDocumento());
+
+        SwingUtilities.invokeLater(() -> new FrmClientes(clientes).setVisible(true));
     }
 }

@@ -1,6 +1,7 @@
 package hotel.dao;
 
 import hotel.config.ProveedorConexion;
+import hotel.excepcion.AccesoDatosException;
 import hotel.modelo.Cliente;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,7 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClienteDAOImpl implements ClienteDAO {
+public class ClienteDAOImpl implements ClienteConsulta, ClienteEscritura {
 
     private final ProveedorConexion proveedor;
 
@@ -18,7 +19,7 @@ public class ClienteDAOImpl implements ClienteDAO {
     }
 
     @Override
-    public List<Cliente> listar() throws SQLException {
+    public List<Cliente> listar() {
         String sql = "SELECT idCliente, tipoDocumento, documento, nombres, apellidos, "
                 + "telefono, correo, nacionalidad FROM Cliente "
                 + "WHERE activo = 1 ORDER BY apellidos, nombres";
@@ -36,16 +37,31 @@ public class ClienteDAOImpl implements ClienteDAO {
                 c.setNacionalidad(rs.getString("nacionalidad"));
                 lista.add(c);
             }
+        } catch (SQLException e) {
+            throw new AccesoDatosException("No se pudo obtener la lista de clientes.", e);
         }
         return lista;
     }
 
     @Override
-    public void insertar(Cliente c) throws SQLException {
-        // El cliente nuevo entra con nivel Bronce
+    public boolean existeDocumento(String documento, int idExcluido) {
+        String sql = "SELECT COUNT(*) FROM Cliente WHERE documento = ? AND idCliente <> ?";
+        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setString(1, documento);
+            ps.setInt(2, idExcluido);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new AccesoDatosException("No se pudo verificar el documento.", e);
+        }
+    }
+
+    @Override
+    public void insertar(Cliente c) {
         String sql = "INSERT INTO Cliente (tipoDocumento, documento, nombres, apellidos, "
-                + "telefono, correo, nacionalidad, idNivel) VALUES (?,?,?,?,?,?,?, "
-                + "(SELECT idNivel FROM NivelFidelidad WHERE nombre = N'Bronce'))";
+                + "telefono, correo, nacionalidad) VALUES (?,?,?,?,?,?,?)";
         try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, c.getTipoDocumento());
             ps.setString(2, c.getDocumento());
@@ -55,11 +71,13 @@ public class ClienteDAOImpl implements ClienteDAO {
             ps.setString(6, c.getCorreo());
             ps.setString(7, c.getNacionalidad());
             ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new AccesoDatosException("No se pudo guardar el cliente.", e);
         }
     }
 
     @Override
-    public void actualizar(Cliente c) throws SQLException {
+    public void actualizar(Cliente c) {
         String sql = "UPDATE Cliente SET tipoDocumento=?, documento=?, nombres=?, apellidos=?, "
                 + "telefono=?, correo=?, nacionalidad=? WHERE idCliente=?";
         try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
@@ -72,29 +90,19 @@ public class ClienteDAOImpl implements ClienteDAO {
             ps.setString(7, c.getNacionalidad());
             ps.setInt(8, c.getIdCliente());
             ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new AccesoDatosException("No se pudo guardar el cliente.", e);
         }
     }
 
-    // Baja lógica: el cliente puede tener reservas e historial, por eso no se borra la fila.
     @Override
-    public void desactivar(int idCliente) throws SQLException {
+    public void desactivar(int idCliente) {
         try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(
                 "UPDATE Cliente SET activo = 0 WHERE idCliente = ?")) {
             ps.setInt(1, idCliente);
             ps.executeUpdate();
-        }
-    }
-
-    @Override
-    public boolean existeDocumento(String documento, int idExcluido) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Cliente WHERE documento = ? AND idCliente <> ?";
-        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setString(1, documento);
-            ps.setInt(2, idExcluido);
-            try (ResultSet rs = ps.executeQuery()) {
-                rs.next();
-                return rs.getInt(1) > 0;
-            }
+        } catch (SQLException e) {
+            throw new AccesoDatosException("No se pudo eliminar el cliente.", e);
         }
     }
 }

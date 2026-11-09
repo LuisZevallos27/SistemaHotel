@@ -7,9 +7,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-/**
- * PATRÓN SINGLETON: una única instancia concentra la configuración de la BD.
- */
 public final class ConexionBD implements ProveedorConexion {
 
     private static ConexionBD instancia;
@@ -27,8 +24,8 @@ public final class ConexionBD implements ProveedorConexion {
         }
 
         String host = p.getProperty("db.host", "localhost").trim();
-        String instancia = p.getProperty("db.instance", "").trim();
-        String puerto = p.getProperty("db.port", instancia.isEmpty() ? "1433" : "").trim();
+        String instanciaSql = p.getProperty("db.instance", "").trim();
+        String puerto = p.getProperty("db.port", instanciaSql.isEmpty() ? "1433" : "").trim();
         String bd = p.getProperty("db.name", "HotelDB").trim();
 
         this.usuario = p.getProperty("db.user", "").trim();
@@ -38,8 +35,8 @@ public final class ConexionBD implements ProveedorConexion {
         if (!puerto.isEmpty()) {
             sb.append(":").append(puerto);
         }
-        if (!instancia.isEmpty()) {
-            sb.append(";instanceName=").append(instancia);
+        if (!instanciaSql.isEmpty()) {
+            sb.append(";instanceName=").append(instanciaSql);
         }
         sb.append(";databaseName=").append(bd)
                 .append(";encrypt=true;trustServerCertificate=true");

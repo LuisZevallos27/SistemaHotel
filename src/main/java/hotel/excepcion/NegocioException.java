@@ -1,4 +1,4 @@
-package hotel.servicio;
+package hotel.excepcion;
 
 public class NegocioException extends Exception {
 
