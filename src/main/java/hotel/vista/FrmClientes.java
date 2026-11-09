@@ -47,7 +47,7 @@ public class FrmClientes extends JFrame {
         this.cboTipoDoc = new JComboBox<>(servicio.tiposDocumento().toArray(new String[0]));
 
         setTitle("Gestión de Clientes - Hotel");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setSize(900, 520);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
