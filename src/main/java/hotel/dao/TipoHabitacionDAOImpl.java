@@ -3,8 +3,8 @@ package hotel.dao;
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
 import hotel.habitacion.TipoHabitacion;
+import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,9 +20,8 @@ public class TipoHabitacionDAOImpl implements TipoHabitacionConsulta {
 
     @Override
     public List<TipoHabitacion> listar() {
-        String sql = "SELECT idTipo, nombre, capacidad, tarifaBase FROM TipoHabitacion ORDER BY tarifaBase";
         List<TipoHabitacion> lista = new ArrayList<>();
-        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_TipoHabitacion_Listar}"); ResultSet rs = cs.executeQuery()) {
             while (rs.next()) {
                 lista.add(new TipoHabitacion(rs.getInt("idTipo"), rs.getString("nombre"),
                         rs.getInt("capacidad"), rs.getBigDecimal("tarifaBase").doubleValue()));

@@ -3,8 +3,8 @@ package hotel.dao;
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
 import hotel.tarifa.Temporada;
+import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,10 +20,8 @@ public class TemporadaDAOImpl implements TemporadaConsulta {
 
     @Override
     public List<Temporada> listar() {
-        String sql = "SELECT idTemporada, nombre, fechaInicio, fechaFin, factor "
-                + "FROM Temporada ORDER BY fechaInicio";
         List<Temporada> lista = new ArrayList<>();
-        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Temporada_Listar}"); ResultSet rs = cs.executeQuery()) {
             while (rs.next()) {
                 lista.add(new Temporada(rs.getInt("idTemporada"), rs.getString("nombre"),
                         rs.getDate("fechaInicio").toLocalDate(), rs.getDate("fechaFin").toLocalDate(),

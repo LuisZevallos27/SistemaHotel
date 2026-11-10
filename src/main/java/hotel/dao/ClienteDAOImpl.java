@@ -3,8 +3,8 @@ package hotel.dao;
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
 import hotel.modelo.Cliente;
+import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,11 +20,8 @@ public class ClienteDAOImpl implements ClienteConsulta, ClienteEscritura {
 
     @Override
     public List<Cliente> listar() {
-        String sql = "SELECT idCliente, tipoDocumento, documento, nombres, apellidos, "
-                + "telefono, correo, nacionalidad FROM Cliente "
-                + "WHERE activo = 1 ORDER BY apellidos, nombres";
         List<Cliente> lista = new ArrayList<>();
-        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Cliente_Listar}"); ResultSet rs = cs.executeQuery()) {
             while (rs.next()) {
                 Cliente c = new Cliente();
                 c.setIdCliente(rs.getInt("idCliente"));
@@ -45,13 +42,12 @@ public class ClienteDAOImpl implements ClienteConsulta, ClienteEscritura {
 
     @Override
     public boolean existeDocumento(String documento, int idExcluido) {
-        String sql = "SELECT COUNT(*) FROM Cliente WHERE documento = ? AND idCliente <> ?";
-        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setString(1, documento);
-            ps.setInt(2, idExcluido);
-            try (ResultSet rs = ps.executeQuery()) {
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Cliente_ExisteDocumento(?, ?)}")) {
+            cs.setString(1, documento);
+            cs.setInt(2, idExcluido);
+            try (ResultSet rs = cs.executeQuery()) {
                 rs.next();
-                return rs.getInt(1) > 0;
+                return rs.getInt("existe") == 1;
             }
         } catch (SQLException e) {
             throw new AccesoDatosException("No se pudo verificar el documento.", e);
@@ -60,17 +56,15 @@ public class ClienteDAOImpl implements ClienteConsulta, ClienteEscritura {
 
     @Override
     public void insertar(Cliente c) {
-        String sql = "INSERT INTO Cliente (tipoDocumento, documento, nombres, apellidos, "
-                + "telefono, correo, nacionalidad) VALUES (?,?,?,?,?,?,?)";
-        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setString(1, c.getTipoDocumento());
-            ps.setString(2, c.getDocumento());
-            ps.setString(3, c.getNombres());
-            ps.setString(4, c.getApellidos());
-            ps.setString(5, c.getTelefono());
-            ps.setString(6, c.getCorreo());
-            ps.setString(7, c.getNacionalidad());
-            ps.executeUpdate();
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Cliente_Insertar(?, ?, ?, ?, ?, ?, ?)}")) {
+            cs.setString(1, c.getTipoDocumento());
+            cs.setString(2, c.getDocumento());
+            cs.setString(3, c.getNombres());
+            cs.setString(4, c.getApellidos());
+            cs.setString(5, c.getTelefono());
+            cs.setString(6, c.getCorreo());
+            cs.setString(7, c.getNacionalidad());
+            cs.execute();
         } catch (SQLException e) {
             throw new AccesoDatosException("No se pudo guardar el cliente.", e);
         }
@@ -78,18 +72,16 @@ public class ClienteDAOImpl implements ClienteConsulta, ClienteEscritura {
 
     @Override
     public void actualizar(Cliente c) {
-        String sql = "UPDATE Cliente SET tipoDocumento=?, documento=?, nombres=?, apellidos=?, "
-                + "telefono=?, correo=?, nacionalidad=? WHERE idCliente=?";
-        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setString(1, c.getTipoDocumento());
-            ps.setString(2, c.getDocumento());
-            ps.setString(3, c.getNombres());
-            ps.setString(4, c.getApellidos());
-            ps.setString(5, c.getTelefono());
-            ps.setString(6, c.getCorreo());
-            ps.setString(7, c.getNacionalidad());
-            ps.setInt(8, c.getIdCliente());
-            ps.executeUpdate();
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Cliente_Actualizar(?, ?, ?, ?, ?, ?, ?, ?)}")) {
+            cs.setInt(1, c.getIdCliente());
+            cs.setString(2, c.getTipoDocumento());
+            cs.setString(3, c.getDocumento());
+            cs.setString(4, c.getNombres());
+            cs.setString(5, c.getApellidos());
+            cs.setString(6, c.getTelefono());
+            cs.setString(7, c.getCorreo());
+            cs.setString(8, c.getNacionalidad());
+            cs.execute();
         } catch (SQLException e) {
             throw new AccesoDatosException("No se pudo guardar el cliente.", e);
         }
@@ -97,10 +89,9 @@ public class ClienteDAOImpl implements ClienteConsulta, ClienteEscritura {
 
     @Override
     public void desactivar(int idCliente) {
-        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(
-                "UPDATE Cliente SET activo = 0 WHERE idCliente = ?")) {
-            ps.setInt(1, idCliente);
-            ps.executeUpdate();
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Cliente_Desactivar(?)}")) {
+            cs.setInt(1, idCliente);
+            cs.execute();
         } catch (SQLException e) {
             throw new AccesoDatosException("No se pudo eliminar el cliente.", e);
         }

@@ -3,8 +3,8 @@ package hotel.dao;
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
 import hotel.tarifa.Descuentos;
+import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
@@ -19,15 +19,9 @@ public class DescuentoClienteDAOImpl implements DescuentoClienteConsulta {
 
     @Override
     public Optional<Descuentos> buscarPorDocumento(String documento) {
-        String sql = "SELECT e.razonSocial, ISNULL(e.descuentoPorcentaje, 0) AS descEmpresa, "
-                + "n.nombre AS nivel, ISNULL(n.descuentoPorcentaje, 0) AS descNivel "
-                + "FROM Cliente c "
-                + "LEFT JOIN Empresa e ON e.idEmpresa = c.idEmpresa "
-                + "LEFT JOIN NivelFidelidad n ON n.idNivel = c.idNivel "
-                + "WHERE c.documento = ? AND c.activo = 1";
-        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setString(1, documento);
-            try (ResultSet rs = ps.executeQuery()) {
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Cliente_ObtenerDescuentos(?)}")) {
+            cs.setString(1, documento);
+            try (ResultSet rs = cs.executeQuery()) {
                 if (!rs.next()) {
                     return Optional.empty();
                 }

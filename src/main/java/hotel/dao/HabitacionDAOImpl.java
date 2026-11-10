@@ -6,8 +6,8 @@ import hotel.habitacion.CreadorHabitaciones;
 import hotel.habitacion.DatosHabitacion;
 import hotel.habitacion.EstadoHabitacion;
 import hotel.habitacion.Habitacion;
+import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -27,22 +27,16 @@ public class HabitacionDAOImpl implements HabitacionConsulta, HabitacionEscritur
 
     @Override
     public List<Habitacion> listar() {
-        String sqlAmenidades = "SELECT ta.idTipo, a.nombre FROM TipoHabitacionAmenidad ta "
-                + "JOIN Amenidad a ON a.idAmenidad = ta.idAmenidad ORDER BY a.nombre";
-        String sqlHabitaciones = "SELECT h.idHabitacion, h.numero, h.piso, h.estado, "
-                + "t.idTipo, t.nombre AS tipo, t.capacidad, t.tarifaBase "
-                + "FROM Habitacion h JOIN TipoHabitacion t ON t.idTipo = h.idTipo "
-                + "WHERE h.activa = 1 ORDER BY h.numero";
         List<Habitacion> lista = new ArrayList<>();
         try (Connection cn = proveedor.getConexion()) {
             Map<Integer, List<String>> amenidades = new HashMap<>();
-            try (PreparedStatement ps = cn.prepareStatement(sqlAmenidades); ResultSet rs = ps.executeQuery()) {
+            try (CallableStatement cs = cn.prepareCall("{call usp_Amenidad_ListarPorTipo}"); ResultSet rs = cs.executeQuery()) {
                 while (rs.next()) {
                     amenidades.computeIfAbsent(rs.getInt("idTipo"), k -> new ArrayList<>())
                             .add(rs.getString("nombre"));
                 }
             }
-            try (PreparedStatement ps = cn.prepareStatement(sqlHabitaciones); ResultSet rs = ps.executeQuery()) {
+            try (CallableStatement cs = cn.prepareCall("{call usp_Habitacion_Listar}"); ResultSet rs = cs.executeQuery()) {
                 while (rs.next()) {
                     String tipo = rs.getString("tipo");
                     DatosHabitacion datos = new DatosHabitacion(
@@ -65,11 +59,10 @@ public class HabitacionDAOImpl implements HabitacionConsulta, HabitacionEscritur
 
     @Override
     public void actualizarEstado(int idHabitacion, EstadoHabitacion estado) {
-        String sql = "UPDATE Habitacion SET estado = ? WHERE idHabitacion = ?";
-        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setString(1, estado.name());
-            ps.setInt(2, idHabitacion);
-            ps.executeUpdate();
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Habitacion_ActualizarEstado(?, ?)}")) {
+            cs.setInt(1, idHabitacion);
+            cs.setString(2, estado.name());
+            cs.execute();
         } catch (SQLException e) {
             throw new AccesoDatosException("No se pudo cambiar el estado de la habitación.", e);
         }

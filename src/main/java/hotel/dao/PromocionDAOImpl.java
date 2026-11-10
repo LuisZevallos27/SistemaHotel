@@ -3,9 +3,9 @@ package hotel.dao;
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
 import hotel.tarifa.Promocion;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -21,13 +21,10 @@ public class PromocionDAOImpl implements PromocionConsulta {
 
     @Override
     public Optional<Promocion> buscarVigentePorCodigo(String codigo, LocalDate fecha) {
-        String sql = "SELECT idPromocion, codigo, nombre, tipoDescuento, valor, fechaInicio, fechaFin, "
-                + "minNoches, idTipo FROM Promocion "
-                + "WHERE codigo = ? AND activa = 1 AND ? BETWEEN fechaInicio AND fechaFin";
-        try (Connection cn = proveedor.getConexion(); PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setString(1, codigo);
-            ps.setDate(2, Date.valueOf(fecha));
-            try (ResultSet rs = ps.executeQuery()) {
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Promocion_BuscarVigente(?, ?)}")) {
+            cs.setString(1, codigo);
+            cs.setDate(2, Date.valueOf(fecha));
+            try (ResultSet rs = cs.executeQuery()) {
                 if (!rs.next()) {
                     return Optional.empty();
                 }
