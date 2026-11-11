@@ -23,9 +23,12 @@ import javax.swing.JTextField;
 
 public class FrmCotizador extends JFrame {
 
+    private static final String SIN_CANAL = "(sin canal)";
+
     private final CotizadorService servicio;
 
     private final JComboBox<String> cboTipo;
+    private final JComboBox<String> cboCanal;
     private final JTextField txtEntrada = new JTextField(LocalDate.now().plusDays(1).toString());
     private final JTextField txtSalida = new JTextField(LocalDate.now().plusDays(3).toString());
     private final JTextField txtDocumento = new JTextField();
@@ -35,17 +38,24 @@ public class FrmCotizador extends JFrame {
     public FrmCotizador(CotizadorService servicio) {
         this.servicio = servicio;
         this.cboTipo = new JComboBox<>(servicio.tiposHabitacion().toArray(new String[0]));
+        this.cboCanal = new JComboBox<>();
+        cboCanal.addItem(SIN_CANAL);
+        for (String canal : servicio.canales()) {
+            cboCanal.addItem(canal);
+        }
 
         setTitle("Cotizador de estadía - Hotel");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(640, 560);
+        setSize(640, 600);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
-        JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));
+        JPanel form = new JPanel(new GridLayout(6, 2, 5, 5));
         form.setBorder(BorderFactory.createTitledBorder("Datos de la cotización"));
         form.add(new JLabel("Tipo de habitación:"));
         form.add(cboTipo);
+        form.add(new JLabel("Canal de reserva:"));
+        form.add(cboCanal);
         form.add(new JLabel("Entrada (AAAA-MM-DD):"));
         form.add(txtEntrada);
         form.add(new JLabel("Salida (AAAA-MM-DD):"));
@@ -73,8 +83,10 @@ public class FrmCotizador extends JFrame {
         try {
             LocalDate entrada = LocalDate.parse(txtEntrada.getText().trim());
             LocalDate salida = LocalDate.parse(txtSalida.getText().trim());
+            String canal = SIN_CANAL.equals(cboCanal.getSelectedItem())
+                    ? "" : (String) cboCanal.getSelectedItem();
             Cotizacion c = servicio.cotizar((String) cboTipo.getSelectedItem(), entrada, salida,
-                    txtDocumento.getText(), txtPromocion.getText());
+                    txtDocumento.getText(), txtPromocion.getText(), canal);
             mostrar(c);
         } catch (DateTimeParseException ex) {
             JOptionPane.showMessageDialog(this, "Use el formato de fecha AAAA-MM-DD.",

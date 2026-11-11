@@ -1,5 +1,7 @@
 package hotel.servicio;
 
+import hotel.canal.Canal;
+import hotel.dao.CanalConsulta;
 import hotel.dao.DescuentoClienteConsulta;
 import hotel.dao.PromocionConsulta;
 import hotel.dao.TemporadaConsulta;
@@ -25,15 +27,17 @@ public class CotizadorServiceImpl implements CotizadorService {
     private final TemporadaConsulta temporadas;
     private final PromocionConsulta promociones;
     private final DescuentoClienteConsulta descuentos;
+    private final CanalConsulta canales;
     private final List<FabricaTarifa> fabricas;
 
     public CotizadorServiceImpl(TipoHabitacionConsulta tipos, TemporadaConsulta temporadas,
             PromocionConsulta promociones, DescuentoClienteConsulta descuentos,
-            List<FabricaTarifa> fabricas) {
+            CanalConsulta canales, List<FabricaTarifa> fabricas) {
         this.tipos = tipos;
         this.temporadas = temporadas;
         this.promociones = promociones;
         this.descuentos = descuentos;
+        this.canales = canales;
         this.fabricas = fabricas;
     }
 
@@ -47,8 +51,18 @@ public class CotizadorServiceImpl implements CotizadorService {
     }
 
     @Override
+    public List<String> canales() {
+        List<String> nombres = new ArrayList<>();
+        for (Canal c : canales.listar()) {
+            nombres.add(c.nombre());
+        }
+        return nombres;
+    }
+
+    @Override
     public Cotizacion cotizar(String tipoHabitacion, LocalDate entrada, LocalDate salida,
-            String documentoCliente, String codigoPromocion) throws NegocioException {
+            String documentoCliente, String codigoPromocion, String canal)
+            throws NegocioException {
         if (entrada == null || salida == null) {
             throw new NegocioException("Indique las fechas de entrada y salida.");
         }
@@ -63,9 +77,10 @@ public class CotizadorServiceImpl implements CotizadorService {
         TipoHabitacion tipo = buscarTipo(tipoHabitacion);
         Descuentos descuentosCliente = buscarDescuentos(documentoCliente);
         Promocion promocion = buscarPromocion(codigoPromocion, entrada, noches, tipo);
+        Canal canalReserva = buscarCanal(canal);
 
         ContextoTarifa contexto = new ContextoTarifa(
-                tipo, noches, descuentosCliente, promocion, temporadas.listar());
+                tipo, noches, descuentosCliente, promocion, temporadas.listar(), canalReserva);
 
         double total = 0;
         List<String> porNoche = new ArrayList<>();
@@ -82,7 +97,7 @@ public class CotizadorServiceImpl implements CotizadorService {
             }
         }
         return new Cotizacion(tipo.nombre(), entrada, salida, noches, calculo, porNoche,
-                Math.round(total * 100.0) / 100.0);
+                Math.round(total * 100.0) / 100.0, promocion == null ? null : promocion.id());
     }
 
     private TipoHabitacion buscarTipo(String nombre) throws NegocioException {
@@ -92,6 +107,18 @@ public class CotizadorServiceImpl implements CotizadorService {
             }
         }
         throw new NegocioException("Tipo de habitación no encontrado: " + nombre);
+    }
+
+    private Canal buscarCanal(String nombre) throws NegocioException {
+        if (vacio(nombre)) {
+            return null;
+        }
+        for (Canal c : canales.listar()) {
+            if (c.nombre().equalsIgnoreCase(nombre.trim())) {
+                return c;
+            }
+        }
+        throw new NegocioException("Canal de reserva no encontrado: " + nombre);
     }
 
     private Descuentos buscarDescuentos(String documento) throws NegocioException {
