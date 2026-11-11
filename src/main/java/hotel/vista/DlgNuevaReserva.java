@@ -26,6 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 
 public class DlgNuevaReserva extends JDialog {
 
@@ -111,7 +112,17 @@ public class DlgNuevaReserva extends JDialog {
             if (libres.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
                         "No hay habitaciones de ese tipo disponibles en esas fechas.");
+                return;
             }
+            StringBuilder sb = new StringBuilder();
+            sb.append("Hay ").append(libres.size()).append(" habitación(es) disponible(s):\n\n");
+            for (HabitacionLibre h : libres) {
+                sb.append("  - ").append(h).append('\n');
+            }
+            sb.append("\nElija una en la lista \"Habitación\" o deje la asignación automática.");
+            JOptionPane.showMessageDialog(this, sb.toString(), "Disponibilidad",
+                    JOptionPane.INFORMATION_MESSAGE);
+            SwingUtilities.invokeLater(cboHabitacion::showPopup);
         } catch (DateTimeParseException ex) {
             avisarFecha();
         } catch (NegocioException ex) {

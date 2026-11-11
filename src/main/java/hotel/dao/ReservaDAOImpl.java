@@ -16,6 +16,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ReservaDAOImpl implements ReservaConsulta, ReservaEscritura {
 
@@ -41,6 +42,21 @@ public class ReservaDAOImpl implements ReservaConsulta, ReservaEscritura {
             throw new AccesoDatosException("No se pudo obtener la lista de reservas.", e);
         }
         return lista;
+    }
+
+    @Override
+    public Optional<Reserva> buscarPorId(int idReserva) {
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Reserva_ObtenerPorId(?)}")) {
+            cs.setInt(1, idReserva);
+            try (ResultSet rs = cs.executeQuery()) {
+                if (!rs.next()) {
+                    return Optional.empty();
+                }
+                return Optional.of(mapear(rs));
+            }
+        } catch (SQLException e) {
+            throw new AccesoDatosException("No se pudo consultar la reserva.", e);
+        }
     }
 
     @Override

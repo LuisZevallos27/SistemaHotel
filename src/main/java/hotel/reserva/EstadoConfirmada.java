@@ -26,4 +26,9 @@ public class EstadoConfirmada extends EstadoReservaBase {
     public boolean admiteModificacion() {
         return true;
     }
+
+    @Override
+    public boolean ocupaHabitacion() {
+        return true;
+    }
 }

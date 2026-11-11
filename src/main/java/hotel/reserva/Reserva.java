@@ -76,6 +76,14 @@ public class Reserva {
         estado = estado.registrarCheckOut();
     }
 
+    public ReservaMemento crearMemento() {
+        return new ReservaMemento(estado);
+    }
+
+    public void restaurar(ReservaMemento memento) {
+        this.estado = memento.estado();
+    }
+
     public int getNoches() {
         return (int) ChronoUnit.DAYS.between(fechaEntrada, fechaSalida);
     }

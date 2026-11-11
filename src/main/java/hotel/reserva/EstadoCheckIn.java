@@ -11,4 +11,9 @@ public class EstadoCheckIn extends EstadoReservaBase {
     public EstadoReserva registrarCheckOut() {
         return EstadosReserva.CHECKOUT;
     }
+
+    @Override
+    public boolean ocupaHabitacion() {
+        return true;
+    }
 }

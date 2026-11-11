@@ -5,6 +5,7 @@ import hotel.excepcion.NegocioException;
 import hotel.habitacion.HabitacionLibre;
 import hotel.reserva.RegistroHistorial;
 import hotel.reserva.Reserva;
+import hotel.reserva.ReservaMemento;
 import hotel.reserva.SolicitudReserva;
 import java.time.LocalDate;
 import java.util.List;
@@ -33,4 +34,7 @@ public interface ReservaService {
     boolean cancelar(Reserva reserva, Integer idUsuario) throws NegocioException;
 
     void marcarNoShow(Reserva reserva, Integer idUsuario) throws NegocioException;
+
+    void restaurarEstado(Reserva reserva, ReservaMemento memento, Integer idUsuario,
+            String detalle) throws NegocioException;
 }

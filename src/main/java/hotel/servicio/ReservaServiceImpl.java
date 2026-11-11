@@ -16,6 +16,7 @@ import hotel.reserva.EstadosReserva;
 import hotel.reserva.RegistroHistorial;
 import hotel.reserva.Reserva;
 import hotel.reserva.ReservaBuilder;
+import hotel.reserva.ReservaMemento;
 import hotel.reserva.SolicitudReserva;
 import hotel.tarifa.Cotizacion;
 import java.time.LocalDate;
@@ -165,6 +166,38 @@ public class ReservaServiceImpl implements ReservaService {
         reserva.marcarNoShow();
         escritura.cambiarEstado(reserva.getId(), reserva.getEstado().nombre(), idUsuario,
                 "El huésped no se presentó");
+    }
+
+    @Override
+    public void restaurarEstado(Reserva reserva, ReservaMemento memento, Integer idUsuario,
+            String detalle) throws NegocioException {
+        Reserva actual = consulta.buscarPorId(reserva.getId())
+                .orElseThrow(() -> new NegocioException("La reserva ya no existe."));
+        if (!actual.getEstado().nombre().equals(reserva.getEstado().nombre())) {
+            throw new NegocioException("La reserva cambió de estado desde otra operación (ahora está "
+                    + actual.getEstado().nombre() + "); no se puede deshacer.");
+        }
+
+        Reserva prueba = ReservaBuilder.desde(reserva).build();
+        prueba.restaurar(memento);
+        boolean vuelveAOcupar = !reserva.getEstado().ocupaHabitacion()
+                && prueba.getEstado().ocupaHabitacion();
+        if (vuelveAOcupar && reserva.getIdHabitacion() != null) {
+            boolean libre = false;
+            for (HabitacionLibre h : disponibilidad.buscar(reserva.getIdTipo(),
+                    reserva.getFechaEntrada(), reserva.getFechaSalida())) {
+                if (h.id() == reserva.getIdHabitacion()) {
+                    libre = true;
+                }
+            }
+            if (!libre) {
+                throw new NegocioException("No se puede deshacer: la habitación " + reserva.getHabitacion()
+                        + " ya está reservada por otra reserva en esas fechas.");
+            }
+        }
+
+        reserva.restaurar(memento);
+        escritura.cambiarEstado(reserva.getId(), reserva.getEstado().nombre(), idUsuario, detalle);
     }
 
     private boolean correspondePenalidad(Reserva reserva) {

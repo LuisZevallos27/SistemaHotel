@@ -17,4 +17,6 @@ public interface EstadoReserva {
     EstadoReserva registrarCheckOut() throws NegocioException;
 
     boolean admiteModificacion();
+
+    boolean ocupaHabitacion();
 }

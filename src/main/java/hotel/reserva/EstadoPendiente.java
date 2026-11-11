@@ -21,4 +21,9 @@ public class EstadoPendiente extends EstadoReservaBase {
     public boolean admiteModificacion() {
         return true;
     }
+
+    @Override
+    public boolean ocupaHabitacion() {
+        return true;
+    }
 }

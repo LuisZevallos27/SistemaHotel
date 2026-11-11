@@ -37,4 +37,9 @@ public abstract class EstadoReservaBase implements EstadoReserva {
     public boolean admiteModificacion() {
         return false;
     }
+
+    @Override
+    public boolean ocupaHabitacion() {
+        return false;
+    }
 }

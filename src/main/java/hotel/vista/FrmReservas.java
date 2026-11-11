@@ -1,5 +1,9 @@
 package hotel.vista;
 
+import hotel.comando.ComandoCancelarReserva;
+import hotel.comando.ComandoConfirmarReserva;
+import hotel.comando.ComandoMarcarNoShow;
+import hotel.comando.HistorialComandos;
 import hotel.excepcion.AccesoDatosException;
 import hotel.excepcion.NegocioException;
 import hotel.reserva.RegistroHistorial;
@@ -29,7 +33,9 @@ public class FrmReservas extends JFrame {
             = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final ReservaService servicio;
+    private final HistorialComandos comandos = new HistorialComandos();
     private final JComboBox<String> cboFiltro = new JComboBox<>();
+    private final JButton btnDeshacer = new JButton("Deshacer");
     private List<Reserva> reservas = new ArrayList<>();
 
     private final DefaultTableModel modelo = new DefaultTableModel(
@@ -74,6 +80,7 @@ public class FrmReservas extends JFrame {
         sur.add(btnCancelar);
         sur.add(btnNoShow);
         sur.add(btnHistorial);
+        sur.add(btnDeshacer);
 
         add(norte, BorderLayout.NORTH);
         add(new JScrollPane(tabla), BorderLayout.CENTER);
@@ -86,7 +93,9 @@ public class FrmReservas extends JFrame {
         btnCancelar.addActionListener(e -> cancelar());
         btnNoShow.addActionListener(e -> marcarNoShow());
         btnHistorial.addActionListener(e -> verHistorial());
+        btnDeshacer.addActionListener(e -> deshacer());
 
+        actualizarBotonDeshacer();
         cargarTabla();
     }
 
@@ -105,6 +114,12 @@ public class FrmReservas extends JFrame {
         } catch (AccesoDatosException ex) {
             error(ex);
         }
+    }
+
+    private void actualizarBotonDeshacer() {
+        btnDeshacer.setEnabled(comandos.puedeDeshacer());
+        btnDeshacer.setText(comandos.puedeDeshacer()
+                ? "Deshacer: " + comandos.descripcionUltimo() : "Deshacer");
     }
 
     private Reserva seleccionada() {
@@ -127,8 +142,9 @@ public class FrmReservas extends JFrame {
             return;
         }
         try {
-            servicio.confirmar(r, null);
+            comandos.ejecutar(new ComandoConfirmarReserva(servicio, r, null));
             JOptionPane.showMessageDialog(this, "Reserva " + r.getCodigo() + " confirmada.");
+            actualizarBotonDeshacer();
             cargarTabla();
         } catch (NegocioException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
@@ -150,10 +166,12 @@ public class FrmReservas extends JFrame {
             return;
         }
         try {
-            boolean conPenalidad = servicio.cancelar(r, null);
-            JOptionPane.showMessageDialog(this, conPenalidad
+            ComandoCancelarReserva comando = new ComandoCancelarReserva(servicio, r, null);
+            comandos.ejecutar(comando);
+            JOptionPane.showMessageDialog(this, comando.conPenalidad()
                     ? "Reserva cancelada CON penalidad (fuera del plazo de cancelación gratuita del canal)."
                     : "Reserva cancelada sin penalidad.");
+            actualizarBotonDeshacer();
             cargarTabla();
         } catch (NegocioException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
@@ -169,12 +187,28 @@ public class FrmReservas extends JFrame {
             return;
         }
         try {
-            servicio.marcarNoShow(r, null);
+            comandos.ejecutar(new ComandoMarcarNoShow(servicio, r, null));
             JOptionPane.showMessageDialog(this, "Reserva " + r.getCodigo() + " marcada como no-show.");
+            actualizarBotonDeshacer();
             cargarTabla();
         } catch (NegocioException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
                     "Validación", JOptionPane.WARNING_MESSAGE);
+        } catch (AccesoDatosException ex) {
+            error(ex);
+        }
+    }
+
+    private void deshacer() {
+        String descripcion = comandos.descripcionUltimo();
+        try {
+            comandos.deshacerUltimo();
+            JOptionPane.showMessageDialog(this, "Se deshizo: " + descripcion);
+            actualizarBotonDeshacer();
+            cargarTabla();
+        } catch (NegocioException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "No se pudo deshacer", JOptionPane.WARNING_MESSAGE);
         } catch (AccesoDatosException ex) {
             error(ex);
         }
