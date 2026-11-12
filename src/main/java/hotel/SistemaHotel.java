@@ -7,6 +7,7 @@ import hotel.dao.ClienteBusquedaDAOImpl;
 import hotel.dao.ClienteDAOImpl;
 import hotel.dao.DescuentoClienteDAOImpl;
 import hotel.dao.DisponibilidadDAOImpl;
+import hotel.dao.EstadiaDAOImpl;
 import hotel.dao.HabitacionDAOImpl;
 import hotel.dao.PromocionDAOImpl;
 import hotel.dao.ReservaDAOImpl;
@@ -18,6 +19,8 @@ import hotel.servicio.ClienteService;
 import hotel.servicio.ClienteServiceImpl;
 import hotel.servicio.CotizadorService;
 import hotel.servicio.CotizadorServiceImpl;
+import hotel.servicio.EstadiaService;
+import hotel.servicio.EstadiaServiceImpl;
 import hotel.servicio.HabitacionService;
 import hotel.servicio.HabitacionServiceImpl;
 import hotel.servicio.ReservaService;
@@ -62,14 +65,20 @@ public class SistemaHotel {
                 canalDao,
                 reglasTarifa);
 
+        DisponibilidadDAOImpl disponibilidadDao = new DisponibilidadDAOImpl(conexion);
+
         ReservaDAOImpl reservaDao = new ReservaDAOImpl(conexion);
         ReservaService reservas = new ReservaServiceImpl(
                 reservaDao, reservaDao, canalDao,
-                new DisponibilidadDAOImpl(conexion),
+                disponibilidadDao,
                 new ClienteBusquedaDAOImpl(conexion),
                 tipoDao, cotizador);
 
+        EstadiaDAOImpl estadiaDao = new EstadiaDAOImpl(conexion);
+        EstadiaService estadias = new EstadiaServiceImpl(
+                reservaDao, disponibilidadDao, habitacionDao, estadiaDao, estadiaDao);
+
         SwingUtilities.invokeLater(() -> new FrmPrincipal(
-                clientes, habitaciones, reservas, cotizador).setVisible(true));
+                clientes, habitaciones, reservas, estadias, cotizador).setVisible(true));
     }
 }
