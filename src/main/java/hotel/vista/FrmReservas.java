@@ -6,12 +6,14 @@ import hotel.comando.ComandoMarcarNoShow;
 import hotel.comando.HistorialComandos;
 import hotel.excepcion.AccesoDatosException;
 import hotel.excepcion.NegocioException;
+import hotel.facturacion.MetodoPago;
 import hotel.reserva.RegistroHistorial;
 import hotel.reserva.Reserva;
 import hotel.servicio.ReservaService;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 public class FrmReservas extends JFrame {
@@ -53,7 +56,7 @@ public class FrmReservas extends JFrame {
 
         setTitle("Reservas - Hotel");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(1150, 520);
+        setSize(1250, 520);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
@@ -66,6 +69,7 @@ public class FrmReservas extends JFrame {
         JButton btnConfirmar = new JButton("Confirmar");
         JButton btnCancelar = new JButton("Cancelar reserva");
         JButton btnNoShow = new JButton("Marcar no-show");
+        JButton btnAnticipo = new JButton("Registrar anticipo");
         JButton btnHistorial = new JButton("Ver historial");
         JButton btnActualizar = new JButton("Actualizar");
 
@@ -79,6 +83,7 @@ public class FrmReservas extends JFrame {
         sur.add(btnConfirmar);
         sur.add(btnCancelar);
         sur.add(btnNoShow);
+        sur.add(btnAnticipo);
         sur.add(btnHistorial);
         sur.add(btnDeshacer);
 
@@ -92,6 +97,7 @@ public class FrmReservas extends JFrame {
         btnConfirmar.addActionListener(e -> confirmar());
         btnCancelar.addActionListener(e -> cancelar());
         btnNoShow.addActionListener(e -> marcarNoShow());
+        btnAnticipo.addActionListener(e -> registrarAnticipo());
         btnHistorial.addActionListener(e -> verHistorial());
         btnDeshacer.addActionListener(e -> deshacer());
 
@@ -191,6 +197,52 @@ public class FrmReservas extends JFrame {
             JOptionPane.showMessageDialog(this, "Reserva " + r.getCodigo() + " marcada como no-show.");
             actualizarBotonDeshacer();
             cargarTabla();
+        } catch (NegocioException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Validación", JOptionPane.WARNING_MESSAGE);
+        } catch (AccesoDatosException ex) {
+            error(ex);
+        }
+    }
+
+    private void registrarAnticipo() {
+        Reserva r = seleccionada();
+        if (r == null) {
+            return;
+        }
+        JTextField txtMonto = new JTextField();
+        JComboBox<MetodoPago> cboMetodo = new JComboBox<>();
+        for (MetodoPago metodo : MetodoPago.values()) {
+            if (metodo.admiteAnticipo()) {
+                cboMetodo.addItem(metodo);
+            }
+        }
+        JTextField txtReferencia = new JTextField();
+
+        JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
+        panel.add(new JLabel("Anticipo requerido (S/):"));
+        panel.add(new JLabel(String.format(Locale.US, "%.2f", servicio.anticipoRequerido(r))));
+        panel.add(new JLabel("Monto a pagar (S/):"));
+        panel.add(txtMonto);
+        panel.add(new JLabel("Método de pago:"));
+        panel.add(cboMetodo);
+        panel.add(new JLabel("Referencia (opcional):"));
+        panel.add(txtReferencia);
+
+        int opcion = JOptionPane.showConfirmDialog(this, panel, "Anticipo de " + r.getCodigo(),
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (opcion != JOptionPane.OK_OPTION) {
+            return;
+        }
+        try {
+            double monto = Double.parseDouble(txtMonto.getText().trim().replace(',', '.'));
+            servicio.registrarAnticipo(r, monto, (MetodoPago) cboMetodo.getSelectedItem(),
+                    txtReferencia.getText(), null);
+            JOptionPane.showMessageDialog(this, "Anticipo registrado.");
+            cargarTabla();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Ingrese un monto válido.",
+                    "Validación", JOptionPane.WARNING_MESSAGE);
         } catch (NegocioException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
                     "Validación", JOptionPane.WARNING_MESSAGE);

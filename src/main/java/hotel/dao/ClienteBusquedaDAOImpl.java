@@ -34,6 +34,8 @@ public class ClienteBusquedaDAOImpl implements ClienteBusqueda {
                 c.setTelefono(rs.getString("telefono"));
                 c.setCorreo(rs.getString("correo"));
                 c.setNacionalidad(rs.getString("nacionalidad"));
+                int empresa = rs.getInt("idEmpresa");
+                c.setIdEmpresa(rs.wasNull() ? null : empresa);
                 return Optional.of(c);
             }
         } catch (SQLException e) {

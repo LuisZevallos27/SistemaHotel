@@ -8,6 +8,7 @@ import hotel.dao.ClienteDAOImpl;
 import hotel.dao.DescuentoClienteDAOImpl;
 import hotel.dao.DisponibilidadDAOImpl;
 import hotel.dao.EstadiaDAOImpl;
+import hotel.dao.FacturacionDAOImpl;
 import hotel.dao.HabitacionDAOImpl;
 import hotel.dao.PromocionDAOImpl;
 import hotel.dao.ReservaDAOImpl;
@@ -15,6 +16,8 @@ import hotel.dao.TemporadaDAOImpl;
 import hotel.dao.TipoHabitacionDAOImpl;
 import hotel.documento.RegistroFabricasDocumento;
 import hotel.habitacion.RegistroFabricasHabitacion;
+import hotel.servicio.CheckOutFacade;
+import hotel.servicio.CheckOutService;
 import hotel.servicio.ClienteService;
 import hotel.servicio.ClienteServiceImpl;
 import hotel.servicio.CotizadorService;
@@ -43,6 +46,7 @@ public class SistemaHotel {
         ClienteDAOImpl clienteDao = new ClienteDAOImpl(conexion);
         ClienteService clientes = new ClienteServiceImpl(
                 clienteDao, clienteDao, new RegistroFabricasDocumento());
+        ClienteBusquedaDAOImpl clienteBusqueda = new ClienteBusquedaDAOImpl(conexion);
 
         HabitacionDAOImpl habitacionDao = new HabitacionDAOImpl(
                 conexion, new RegistroFabricasHabitacion());
@@ -66,19 +70,21 @@ public class SistemaHotel {
                 reglasTarifa);
 
         DisponibilidadDAOImpl disponibilidadDao = new DisponibilidadDAOImpl(conexion);
+        FacturacionDAOImpl facturacionDao = new FacturacionDAOImpl(conexion);
 
         ReservaDAOImpl reservaDao = new ReservaDAOImpl(conexion);
         ReservaService reservas = new ReservaServiceImpl(
-                reservaDao, reservaDao, canalDao,
-                disponibilidadDao,
-                new ClienteBusquedaDAOImpl(conexion),
-                tipoDao, cotizador);
+                reservaDao, reservaDao, canalDao, disponibilidadDao,
+                clienteBusqueda, tipoDao, cotizador, facturacionDao);
 
         EstadiaDAOImpl estadiaDao = new EstadiaDAOImpl(conexion);
         EstadiaService estadias = new EstadiaServiceImpl(
                 reservaDao, disponibilidadDao, habitacionDao, estadiaDao, estadiaDao);
 
+        CheckOutService checkOut = new CheckOutFacade(
+                estadias, clienteBusqueda, facturacionDao, facturacionDao, facturacionDao, estadiaDao);
+
         SwingUtilities.invokeLater(() -> new FrmPrincipal(
-                clientes, habitaciones, reservas, estadias, cotizador).setVisible(true));
+                clientes, habitaciones, reservas, estadias, checkOut, cotizador).setVisible(true));
     }
 }

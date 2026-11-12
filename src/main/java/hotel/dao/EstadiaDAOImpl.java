@@ -17,9 +17,6 @@ import java.util.List;
 
 public class EstadiaDAOImpl implements EstadiaConsulta, EstadiaEscritura {
 
-    private static final int PRIMER_ERROR_NEGOCIO = 50001;
-    private static final int ULTIMO_ERROR_NEGOCIO = 50030;
-
     private final ProveedorConexion proveedor;
 
     public EstadiaDAOImpl(ProveedorConexion proveedor) {
@@ -102,7 +99,7 @@ public class EstadiaDAOImpl implements EstadiaConsulta, EstadiaEscritura {
                 return rs.getInt("idEstadia");
             }
         } catch (SQLException e) {
-            throw traducir(e, "No se pudo registrar el check-in.");
+            throw AccesoDatosException.desde(e, "No se pudo registrar el check-in.");
         }
     }
 
@@ -115,16 +112,31 @@ public class EstadiaDAOImpl implements EstadiaConsulta, EstadiaEscritura {
             asignarEntero(cs, 4, idUsuario);
             cs.execute();
         } catch (SQLException e) {
-            throw traducir(e, "No se pudo registrar el consumo.");
+            throw AccesoDatosException.desde(e, "No se pudo registrar el consumo.");
         }
     }
 
-    private AccesoDatosException traducir(SQLException e, String mensajeGenerico) {
-        int codigo = e.getErrorCode();
-        if (codigo >= PRIMER_ERROR_NEGOCIO && codigo <= ULTIMO_ERROR_NEGOCIO) {
-            return new AccesoDatosException(e.getMessage(), null);
+    @Override
+    public void registrarCheckOut(int idEstadia, Integer idUsuario) {
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Estadia_CheckOut(?, ?)}")) {
+            cs.setInt(1, idEstadia);
+            asignarEntero(cs, 2, idUsuario);
+            cs.execute();
+        } catch (SQLException e) {
+            throw AccesoDatosException.desde(e, "No se pudo registrar el check-out.");
         }
-        return new AccesoDatosException(mensajeGenerico, e);
+    }
+
+    @Override
+    public void registrarEncuesta(int idEstadia, int puntaje, String comentario) {
+        try (Connection cn = proveedor.getConexion(); CallableStatement cs = cn.prepareCall("{call usp_Encuesta_Registrar(?, ?, ?)}")) {
+            cs.setInt(1, idEstadia);
+            cs.setInt(2, puntaje);
+            cs.setString(3, comentario);
+            cs.execute();
+        } catch (SQLException e) {
+            throw AccesoDatosException.desde(e, "No se pudo registrar la encuesta (¿ya fue registrada?).");
+        }
     }
 
     private void asignarEntero(CallableStatement cs, int indice, Integer valor) throws SQLException {

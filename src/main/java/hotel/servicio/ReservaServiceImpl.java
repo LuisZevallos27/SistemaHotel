@@ -4,10 +4,12 @@ import hotel.canal.Canal;
 import hotel.dao.CanalConsulta;
 import hotel.dao.ClienteBusqueda;
 import hotel.dao.DisponibilidadConsulta;
+import hotel.dao.PagoEscritura;
 import hotel.dao.ReservaConsulta;
 import hotel.dao.ReservaEscritura;
 import hotel.dao.TipoHabitacionConsulta;
 import hotel.excepcion.NegocioException;
+import hotel.facturacion.MetodoPago;
 import hotel.habitacion.HabitacionLibre;
 import hotel.habitacion.TipoHabitacion;
 import hotel.modelo.Cliente;
@@ -23,6 +25,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ReservaServiceImpl implements ReservaService {
 
@@ -33,11 +36,12 @@ public class ReservaServiceImpl implements ReservaService {
     private final ClienteBusqueda clientes;
     private final TipoHabitacionConsulta tipos;
     private final CotizadorService cotizador;
+    private final PagoEscritura pagos;
 
     public ReservaServiceImpl(ReservaConsulta consulta, ReservaEscritura escritura,
             CanalConsulta canales, DisponibilidadConsulta disponibilidad,
             ClienteBusqueda clientes, TipoHabitacionConsulta tipos,
-            CotizadorService cotizador) {
+            CotizadorService cotizador, PagoEscritura pagos) {
         this.consulta = consulta;
         this.escritura = escritura;
         this.canales = canales;
@@ -45,6 +49,7 @@ public class ReservaServiceImpl implements ReservaService {
         this.clientes = clientes;
         this.tipos = tipos;
         this.cotizador = cotizador;
+        this.pagos = pagos;
     }
 
     @Override
@@ -133,6 +138,35 @@ public class ReservaServiceImpl implements ReservaService {
             }
         }
         return 0;
+    }
+
+    @Override
+    public void registrarAnticipo(Reserva reserva, double monto, MetodoPago metodo, String referencia,
+            Integer idUsuario) throws NegocioException {
+        if (!reserva.getEstado().admiteModificacion()) {
+            throw new NegocioException("Solo se puede registrar un anticipo en una reserva pendiente o confirmada.");
+        }
+        if (!metodo.admiteAnticipo()) {
+            throw new NegocioException("El método " + metodo + " no se admite para anticipos.");
+        }
+        if (monto <= 0) {
+            throw new NegocioException("El monto del anticipo debe ser mayor que cero.");
+        }
+        double pendiente = Math.round((reserva.getTotal() - reserva.getAnticipo()) * 100.0) / 100.0;
+        if (monto > pendiente + 0.004) {
+            throw new NegocioException(String.format(Locale.US,
+                    "El anticipo excede lo pendiente de la reserva (S/ %.2f).", pendiente));
+        }
+
+        pagos.registrarPagoReserva(reserva.getId(), metodo, monto, vacioANull(referencia), idUsuario);
+
+        double pagado = reserva.getAnticipo() + monto;
+        if ("PENDIENTE".equals(reserva.getEstado().nombre())
+                && pagado + 0.004 >= anticipoRequerido(reserva)) {
+            reserva.confirmar();
+            escritura.cambiarEstado(reserva.getId(), reserva.getEstado().nombre(), idUsuario,
+                    "Confirmada al recibir el anticipo");
+        }
     }
 
     @Override

@@ -6,8 +6,14 @@ import hotel.estadia.Estadia;
 import hotel.estadia.Servicio;
 import hotel.excepcion.AccesoDatosException;
 import hotel.excepcion.NegocioException;
+import hotel.facturacion.Factura;
+import hotel.facturacion.LineaFactura;
+import hotel.facturacion.MetodoPago;
+import hotel.facturacion.ResultadoCheckOut;
+import hotel.facturacion.TipoComprobante;
 import hotel.habitacion.HabitacionLibre;
 import hotel.reserva.Reserva;
+import hotel.servicio.CheckOutService;
 import hotel.servicio.EstadiaService;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -28,6 +34,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableModel;
 
@@ -36,8 +43,10 @@ public class FrmEstadias extends JFrame {
     private static final DateTimeFormatter FORMATO_FECHA_HORA
             = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private static final int ANCHO_DESCRIPCION = 48;
+    private static final int ANCHO_COMPROBANTE = 62;
 
     private final EstadiaService servicio;
+    private final CheckOutService checkOut;
     private List<Reserva> llegadas = new ArrayList<>();
     private List<Estadia> estadias = new ArrayList<>();
 
@@ -49,8 +58,9 @@ public class FrmEstadias extends JFrame {
         "Reserva", "Cliente", "Documento", "Habitación", "Check-in", "Salida prevista", "Alojamiento (S/)"});
     private final JTable tablaEstadias = new JTable(modeloEstadias);
 
-    public FrmEstadias(EstadiaService servicio) {
+    public FrmEstadias(EstadiaService servicio, CheckOutService checkOut) {
         this.servicio = servicio;
+        this.checkOut = checkOut;
 
         setTitle("Estadías - Hotel");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -66,11 +76,13 @@ public class FrmEstadias extends JFrame {
 
         JButton btnConsumo = new JButton("Registrar consumo");
         JButton btnCuenta = new JButton("Ver cuenta");
+        JButton btnCheckOut = new JButton("Hacer check-out");
         JPanel panelEstadias = new JPanel(new BorderLayout(5, 5));
         panelEstadias.add(new JScrollPane(tablaEstadias), BorderLayout.CENTER);
         JPanel botonesEstadias = new JPanel(new FlowLayout(FlowLayout.LEFT));
         botonesEstadias.add(btnConsumo);
         botonesEstadias.add(btnCuenta);
+        botonesEstadias.add(btnCheckOut);
         panelEstadias.add(botonesEstadias, BorderLayout.SOUTH);
 
         JTabbedPane pestanas = new JTabbedPane();
@@ -81,6 +93,7 @@ public class FrmEstadias extends JFrame {
         btnCheckIn.addActionListener(e -> hacerCheckIn());
         btnConsumo.addActionListener(e -> registrarConsumo());
         btnCuenta.addActionListener(e -> verCuenta());
+        btnCheckOut.addActionListener(e -> hacerCheckOut());
 
         cargarTablas();
     }
@@ -201,15 +214,107 @@ public class FrmEstadias extends JFrame {
             sb.append('\n');
             sb.append(String.format(Locale.US, "Anticipos pagados: S/ %.2f%n", cuenta.anticipos()));
             sb.append(String.format(Locale.US, "SALDO A PAGAR:    S/ %.2f", cuenta.saldo()));
-
-            JTextArea area = new JTextArea(sb.toString(), 16, 66);
-            area.setEditable(false);
-            area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-            JOptionPane.showMessageDialog(this, new JScrollPane(area),
-                    "Cuenta de " + estadia.cliente(), JOptionPane.INFORMATION_MESSAGE);
+            mostrarTexto(sb.toString(), "Cuenta de " + estadia.cliente(), 16, 66);
         } catch (AccesoDatosException ex) {
             error(ex);
         }
+    }
+
+    private void hacerCheckOut() {
+        Estadia estadia = estadiaSeleccionada();
+        if (estadia == null) {
+            return;
+        }
+        try {
+            Cuenta cuenta = servicio.cuentaDe(estadia);
+            JComboBox<TipoComprobante> cboComprobante = new JComboBox<>(TipoComprobante.values());
+            JComboBox<MetodoPago> cboMetodo = new JComboBox<>(MetodoPago.values());
+            JTextField txtReferencia = new JTextField();
+
+            JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
+            panel.add(new JLabel("Total de la cuenta:"));
+            panel.add(new JLabel(String.format(Locale.US, "S/ %.2f", cuenta.total())));
+            panel.add(new JLabel("Anticipos pagados:"));
+            panel.add(new JLabel(String.format(Locale.US, "S/ %.2f", cuenta.anticipos())));
+            panel.add(new JLabel("Saldo a pagar:"));
+            panel.add(new JLabel(String.format(Locale.US, "S/ %.2f", cuenta.saldo())));
+            panel.add(new JLabel("Comprobante:"));
+            panel.add(cboComprobante);
+            panel.add(new JLabel("Método de pago:"));
+            panel.add(cboMetodo);
+            panel.add(new JLabel("Referencia (opcional):"));
+            panel.add(txtReferencia);
+
+            int opcion = JOptionPane.showConfirmDialog(this, panel,
+                    "Check-out de " + estadia.cliente() + " (Hab. " + estadia.habitacion() + ")",
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (opcion != JOptionPane.OK_OPTION) {
+                return;
+            }
+            ResultadoCheckOut resultado = checkOut.finalizar(estadia,
+                    (TipoComprobante) cboComprobante.getSelectedItem(),
+                    (MetodoPago) cboMetodo.getSelectedItem(), txtReferencia.getText(), null);
+            mostrarTexto(comprobante(estadia, resultado), "Comprobante emitido", 24, 66);
+            cargarTablas();
+            pedirEncuesta(estadia);
+        } catch (NegocioException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Validación", JOptionPane.WARNING_MESSAGE);
+        } catch (AccesoDatosException ex) {
+            error(ex);
+            cargarTablas();
+        }
+    }
+
+    private void pedirEncuesta(Estadia estadia) {
+        Object puntaje = JOptionPane.showInputDialog(this,
+                "Satisfacción del huésped (1 a 5). Cancele para omitir:", "Encuesta de satisfacción",
+                JOptionPane.QUESTION_MESSAGE, null, new Integer[]{5, 4, 3, 2, 1}, 5);
+        if (puntaje == null) {
+            return;
+        }
+        try {
+            checkOut.registrarEncuesta(estadia, (Integer) puntaje, null);
+            JOptionPane.showMessageDialog(this, "Gracias. Encuesta registrada.");
+        } catch (NegocioException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Validación", JOptionPane.WARNING_MESSAGE);
+        } catch (AccesoDatosException ex) {
+            error(ex);
+        }
+    }
+
+    private String comprobante(Estadia estadia, ResultadoCheckOut resultado) {
+        Factura f = resultado.factura();
+        String doble = "=".repeat(ANCHO_COMPROBANTE);
+        String simple = "-".repeat(ANCHO_COMPROBANTE);
+        StringBuilder sb = new StringBuilder();
+        sb.append(doble).append('\n');
+        sb.append(f.tipo()).append(' ').append(f.numeroCompleto()).append('\n');
+        sb.append("Fecha: ").append(f.fechaEmision().format(FORMATO_FECHA_HORA)).append('\n');
+        sb.append("Cliente: ").append(f.cliente()).append(" (").append(f.documento()).append(")\n");
+        if (f.empresa() != null) {
+            sb.append("Empresa: ").append(f.empresa()).append(" - RUC ").append(f.ruc()).append('\n');
+        }
+        sb.append("Habitación: ").append(estadia.habitacion()).append('\n');
+        sb.append(simple).append('\n');
+        for (LineaFactura linea : resultado.lineas()) {
+            sb.append(fila(linea.concepto(), linea.subtotal()));
+        }
+        sb.append(simple).append('\n');
+        sb.append(fila("Subtotal (sin IGV)", f.subtotal()));
+        sb.append(fila("IGV 18%", f.igv()));
+        sb.append(fila("TOTAL", f.total()));
+        sb.append(fila("Anticipos aplicados", resultado.anticipos()));
+        sb.append(fila("Pagado en el check-out", resultado.montoPagado()));
+        sb.append("Estado: ").append(f.estado()).append('\n');
+        sb.append(doble);
+        return sb.toString();
+    }
+
+    private String fila(String texto, double monto) {
+        String relleno = ".".repeat(Math.max(2, ANCHO_DESCRIPCION - texto.length()));
+        return texto + " " + relleno + String.format(Locale.US, " S/ %9.2f%n", monto);
     }
 
     private void dibujar(ElementoCuenta elemento, int nivel, StringBuilder sb) {
@@ -220,6 +325,14 @@ public class FrmEstadias extends JFrame {
         for (ElementoCuenta hijo : elemento.hijos()) {
             dibujar(hijo, nivel + 1, sb);
         }
+    }
+
+    private void mostrarTexto(String texto, String titulo, int filas, int columnas) {
+        JTextArea area = new JTextArea(texto, filas, columnas);
+        area.setEditable(false);
+        area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        JOptionPane.showMessageDialog(this, new JScrollPane(area), titulo,
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void error(AccesoDatosException ex) {

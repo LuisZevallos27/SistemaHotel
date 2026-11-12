@@ -1781,9 +1781,15 @@ BEGIN
             WHERE idReserva = @idReserva;
         END
 
-        -- Cuando lo pagado alcanza el total, la factura queda PAGADA
+        -- Cuando lo pagado (pagos de la factura + anticipos de la reserva) alcanza el total,
+        -- la factura queda PAGADA
         IF @idFactura IS NOT NULL
-           AND (SELECT SUM(monto) FROM Pago WHERE idFactura = @idFactura)
+           AND ( ISNULL((SELECT SUM(monto) FROM Pago WHERE idFactura = @idFactura), 0)
+               + ISNULL((SELECT SUM(p.monto)
+                         FROM Pago p
+                         JOIN Estadia e ON e.idReserva = p.idReserva
+                         JOIN Factura f ON f.idEstadia = e.idEstadia
+                         WHERE f.idFactura = @idFactura AND p.idFactura IS NULL), 0) )
                >= (SELECT total FROM Factura WHERE idFactura = @idFactura)
         BEGIN
             UPDATE Factura SET estado = 'PAGADA' WHERE idFactura = @idFactura;

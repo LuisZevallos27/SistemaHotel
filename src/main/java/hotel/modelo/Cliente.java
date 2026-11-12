@@ -10,6 +10,7 @@ public class Cliente {
     private String telefono;
     private String correo;
     private String nacionalidad;
+    private Integer idEmpresa;
 
     public int getIdCliente() {
         return idCliente;
@@ -73,5 +74,13 @@ public class Cliente {
 
     public void setNacionalidad(String nacionalidad) {
         this.nacionalidad = nacionalidad;
+    }
+
+    public Integer getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(Integer idEmpresa) {
+        this.idEmpresa = idEmpresa;
     }
 }

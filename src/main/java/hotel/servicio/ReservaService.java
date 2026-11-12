@@ -2,6 +2,7 @@ package hotel.servicio;
 
 import hotel.canal.Canal;
 import hotel.excepcion.NegocioException;
+import hotel.facturacion.MetodoPago;
 import hotel.habitacion.HabitacionLibre;
 import hotel.reserva.RegistroHistorial;
 import hotel.reserva.Reserva;
@@ -24,6 +25,9 @@ public interface ReservaService {
     Reserva crear(SolicitudReserva solicitud, Integer idUsuario) throws NegocioException;
 
     double anticipoRequerido(Reserva reserva);
+
+    void registrarAnticipo(Reserva reserva, double monto, MetodoPago metodo, String referencia,
+            Integer idUsuario) throws NegocioException;
 
     List<Reserva> listar(String estado);
 
