@@ -33,6 +33,7 @@ public class DlgNuevaReserva extends JDialog {
     private static final String AUTOMATICA = "Asignación automática";
 
     private final ReservaService servicio;
+    private final Integer idUsuario;
 
     private final JTextField txtDocumento = new JTextField(15);
     private final JComboBox<String> cboTipo;
@@ -46,9 +47,10 @@ public class DlgNuevaReserva extends JDialog {
     private final DefaultComboBoxModel<Object> modeloHabitaciones = new DefaultComboBoxModel<>();
     private final JComboBox<Object> cboHabitacion = new JComboBox<>(modeloHabitaciones);
 
-    public DlgNuevaReserva(JFrame propietario, ReservaService servicio) {
+    public DlgNuevaReserva(JFrame propietario, ReservaService servicio, Integer idUsuario) {
         super(propietario, "Nueva reserva", true);
         this.servicio = servicio;
+        this.idUsuario = idUsuario;
         this.cboTipo = new JComboBox<>(servicio.tiposHabitacion().toArray(new String[0]));
         for (Canal canal : servicio.canales()) {
             cboCanal.addItem(canal.nombre());
@@ -147,7 +149,7 @@ public class DlgNuevaReserva extends JDialog {
                     (Integer) spnAdultos.getValue(), (Integer) spnNinos.getValue(),
                     txtPromocion.getText(), txtObservaciones.getText());
 
-            Reserva reserva = servicio.crear(solicitud, null);
+            Reserva reserva = servicio.crear(solicitud, idUsuario);
             double anticipo = servicio.anticipoRequerido(reserva);
 
             StringBuilder sb = new StringBuilder();

@@ -47,6 +47,7 @@ public class FrmEstadias extends JFrame {
 
     private final EstadiaService servicio;
     private final CheckOutService checkOut;
+    private final Integer idUsuario;
     private List<Reserva> llegadas = new ArrayList<>();
     private List<Estadia> estadias = new ArrayList<>();
 
@@ -58,9 +59,10 @@ public class FrmEstadias extends JFrame {
         "Reserva", "Cliente", "Documento", "Habitación", "Check-in", "Salida prevista", "Alojamiento (S/)"});
     private final JTable tablaEstadias = new JTable(modeloEstadias);
 
-    public FrmEstadias(EstadiaService servicio, CheckOutService checkOut) {
+    public FrmEstadias(EstadiaService servicio, CheckOutService checkOut, Integer idUsuario) {
         this.servicio = servicio;
         this.checkOut = checkOut;
+        this.idUsuario = idUsuario;
 
         setTitle("Estadías - Hotel");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -150,7 +152,7 @@ public class FrmEstadias extends JFrame {
             if (elegida == null) {
                 return;
             }
-            servicio.registrarCheckIn(reserva, ((HabitacionLibre) elegida).id(), null);
+            servicio.registrarCheckIn(reserva, ((HabitacionLibre) elegida).id(), idUsuario);
             JOptionPane.showMessageDialog(this, "Check-in realizado en la " + elegida + ".");
             cargarTablas();
         } catch (NegocioException ex) {
@@ -192,7 +194,7 @@ public class FrmEstadias extends JFrame {
                 return;
             }
             servicio.registrarConsumo(estadia, (Servicio) cboServicio.getSelectedItem(),
-                    (Integer) spnCantidad.getValue(), null);
+                    (Integer) spnCantidad.getValue(), idUsuario);
             JOptionPane.showMessageDialog(this, "Consumo registrado.");
         } catch (NegocioException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
@@ -253,7 +255,7 @@ public class FrmEstadias extends JFrame {
             }
             ResultadoCheckOut resultado = checkOut.finalizar(estadia,
                     (TipoComprobante) cboComprobante.getSelectedItem(),
-                    (MetodoPago) cboMetodo.getSelectedItem(), txtReferencia.getText(), null);
+                    (MetodoPago) cboMetodo.getSelectedItem(), txtReferencia.getText(), idUsuario);
             mostrarTexto(comprobante(estadia, resultado), "Comprobante emitido", 24, 66);
             cargarTablas();
             pedirEncuesta(estadia);

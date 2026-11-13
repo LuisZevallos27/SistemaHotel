@@ -1,46 +1,80 @@
 package hotel.vista;
 
-import hotel.servicio.CheckOutService;
-import hotel.servicio.ClienteService;
-import hotel.servicio.CotizadorService;
-import hotel.servicio.EstadiaService;
-import hotel.servicio.HabitacionService;
-import hotel.servicio.ReservaService;
+import hotel.seguridad.Modulo;
+import hotel.seguridad.PoliticaAcceso;
+import hotel.seguridad.Usuario;
+import hotel.servicio.Servicios;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Window;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class FrmPrincipal extends JFrame {
 
-    public FrmPrincipal(ClienteService clientes, HabitacionService habitaciones,
-            ReservaService reservas, EstadiaService estadias,
-            CheckOutService checkOut, CotizadorService cotizador) {
+    private final Usuario usuario;
+    private final PoliticaAcceso politica;
+
+    public FrmPrincipal(Usuario usuario, PoliticaAcceso politica, Servicios servicios,
+            Runnable alCerrarSesion) {
+        this.usuario = usuario;
+        this.politica = politica;
+
         setTitle("Sistema de Gestión de Hospedaje");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(360, 390);
+        setSize(420, 520);
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout(10, 10));
 
-        JButton btnClientes = new JButton("Clientes");
-        JButton btnHabitaciones = new JButton("Habitaciones");
-        JButton btnReservas = new JButton("Reservas");
-        JButton btnEstadias = new JButton("Estadías (check-in, consumos, check-out)");
-        JButton btnCotizador = new JButton("Cotizar tarifas");
+        JLabel lblUsuario = new JLabel("Usuario: " + usuario.nombre() + "  |  Rol: " + usuario.rol());
+        lblUsuario.setBorder(BorderFactory.createEmptyBorder(10, 20, 0, 20));
+        add(lblUsuario, BorderLayout.NORTH);
 
         JPanel panel = new JPanel(new GridLayout(0, 1, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
-        panel.add(btnClientes);
-        panel.add(btnHabitaciones);
-        panel.add(btnReservas);
-        panel.add(btnEstadias);
-        panel.add(btnCotizador);
-        add(panel);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        panel.add(boton("Clientes", Modulo.CLIENTES,
+                () -> new FrmClientes(servicios.clientes()).setVisible(true)));
+        panel.add(boton("Habitaciones", Modulo.HABITACIONES,
+                () -> new FrmHabitaciones(servicios.habitaciones()).setVisible(true)));
+        panel.add(boton("Reservas", Modulo.RESERVAS,
+                () -> new FrmReservas(servicios.reservas(), usuario.id()).setVisible(true)));
+        panel.add(boton("Estadías (check-in, consumos, check-out)", Modulo.ESTADIAS,
+                () -> new FrmEstadias(servicios.estadias(), servicios.checkOut(), usuario.id())
+                        .setVisible(true)));
+        panel.add(boton("Operaciones (limpieza y mantenimiento)", Modulo.OPERACIONES,
+                () -> new FrmOperaciones(servicios.limpieza(), servicios.mantenimiento(),
+                        servicios.habitaciones(), usuario.id()).setVisible(true)));
+        panel.add(boton("Cotizar tarifas", Modulo.COTIZADOR,
+                () -> new FrmCotizador(servicios.cotizador()).setVisible(true)));
+        add(panel, BorderLayout.CENTER);
 
-        btnClientes.addActionListener(e -> new FrmClientes(clientes).setVisible(true));
-        btnHabitaciones.addActionListener(e -> new FrmHabitaciones(habitaciones).setVisible(true));
-        btnReservas.addActionListener(e -> new FrmReservas(reservas).setVisible(true));
-        btnEstadias.addActionListener(e -> new FrmEstadias(estadias, checkOut).setVisible(true));
-        btnCotizador.addActionListener(e -> new FrmCotizador(cotizador).setVisible(true));
+        JButton btnCerrarSesion = new JButton("Cerrar sesión");
+        JPanel sur = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        sur.add(btnCerrarSesion);
+        add(sur, BorderLayout.SOUTH);
+
+        btnCerrarSesion.addActionListener(e -> {
+            Window[] anteriores = Window.getWindows();
+            alCerrarSesion.run();
+            for (Window ventana : anteriores) {
+                ventana.dispose();
+            }
+        });
+    }
+
+    private JButton boton(String texto, Modulo modulo, Runnable accion) {
+        JButton boton = new JButton(texto);
+        boolean permitido = politica.permite(usuario.rol(), modulo);
+        boton.setEnabled(permitido);
+        if (permitido) {
+            boton.addActionListener(e -> accion.run());
+        } else {
+            boton.setToolTipText("El rol " + usuario.rol() + " no tiene acceso a este módulo.");
+        }
+        return boton;
     }
 }

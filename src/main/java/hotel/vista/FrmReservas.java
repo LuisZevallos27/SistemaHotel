@@ -36,6 +36,7 @@ public class FrmReservas extends JFrame {
             = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final ReservaService servicio;
+    private final Integer idUsuario;
     private final HistorialComandos comandos = new HistorialComandos();
     private final JComboBox<String> cboFiltro = new JComboBox<>();
     private final JButton btnDeshacer = new JButton("Deshacer");
@@ -51,8 +52,9 @@ public class FrmReservas extends JFrame {
     };
     private final JTable tabla = new JTable(modelo);
 
-    public FrmReservas(ReservaService servicio) {
+    public FrmReservas(ReservaService servicio, Integer idUsuario) {
         this.servicio = servicio;
+        this.idUsuario = idUsuario;
 
         setTitle("Reservas - Hotel");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -138,7 +140,7 @@ public class FrmReservas extends JFrame {
     }
 
     private void nuevaReserva() {
-        new DlgNuevaReserva(this, servicio).setVisible(true);
+        new DlgNuevaReserva(this, servicio, idUsuario).setVisible(true);
         cargarTabla();
     }
 
@@ -148,7 +150,7 @@ public class FrmReservas extends JFrame {
             return;
         }
         try {
-            comandos.ejecutar(new ComandoConfirmarReserva(servicio, r, null));
+            comandos.ejecutar(new ComandoConfirmarReserva(servicio, r, idUsuario));
             JOptionPane.showMessageDialog(this, "Reserva " + r.getCodigo() + " confirmada.");
             actualizarBotonDeshacer();
             cargarTabla();
@@ -172,7 +174,7 @@ public class FrmReservas extends JFrame {
             return;
         }
         try {
-            ComandoCancelarReserva comando = new ComandoCancelarReserva(servicio, r, null);
+            ComandoCancelarReserva comando = new ComandoCancelarReserva(servicio, r, idUsuario);
             comandos.ejecutar(comando);
             JOptionPane.showMessageDialog(this, comando.conPenalidad()
                     ? "Reserva cancelada CON penalidad (fuera del plazo de cancelación gratuita del canal)."
@@ -193,7 +195,7 @@ public class FrmReservas extends JFrame {
             return;
         }
         try {
-            comandos.ejecutar(new ComandoMarcarNoShow(servicio, r, null));
+            comandos.ejecutar(new ComandoMarcarNoShow(servicio, r, idUsuario));
             JOptionPane.showMessageDialog(this, "Reserva " + r.getCodigo() + " marcada como no-show.");
             actualizarBotonDeshacer();
             cargarTabla();
@@ -237,7 +239,7 @@ public class FrmReservas extends JFrame {
         try {
             double monto = Double.parseDouble(txtMonto.getText().trim().replace(',', '.'));
             servicio.registrarAnticipo(r, monto, (MetodoPago) cboMetodo.getSelectedItem(),
-                    txtReferencia.getText(), null);
+                    txtReferencia.getText(), idUsuario);
             JOptionPane.showMessageDialog(this, "Anticipo registrado.");
             cargarTabla();
         } catch (NumberFormatException ex) {
