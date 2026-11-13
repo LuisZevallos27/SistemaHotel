@@ -26,7 +26,7 @@ public class FrmPrincipal extends JFrame {
 
         setTitle("Sistema de Gestión de Hospedaje");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(420, 520);
+        setSize(420, 580);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
@@ -50,6 +50,8 @@ public class FrmPrincipal extends JFrame {
                         servicios.habitaciones(), usuario.id()).setVisible(true)));
         panel.add(boton("Cotizar tarifas", Modulo.COTIZADOR,
                 () -> new FrmCotizador(servicios.cotizador()).setVisible(true)));
+        panel.add(boton("Reportes", Modulo.REPORTES,
+                () -> new FrmReportes(servicios.reportes(), usuario.nombre()).setVisible(true)));
         add(panel, BorderLayout.CENTER);
 
         JButton btnCerrarSesion = new JButton("Cerrar sesión");

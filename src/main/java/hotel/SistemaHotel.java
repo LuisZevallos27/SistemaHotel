@@ -12,12 +12,15 @@ import hotel.dao.FacturacionDAOImpl;
 import hotel.dao.HabitacionDAOImpl;
 import hotel.dao.OperacionDAOImpl;
 import hotel.dao.PromocionDAOImpl;
+import hotel.dao.ReporteDAOImpl;
 import hotel.dao.ReservaDAOImpl;
 import hotel.dao.TemporadaDAOImpl;
 import hotel.dao.TipoHabitacionDAOImpl;
 import hotel.dao.UsuarioDAOImpl;
 import hotel.documento.RegistroFabricasDocumento;
 import hotel.habitacion.RegistroFabricasHabitacion;
+import hotel.reporte.CatalogoReportes;
+import hotel.reporte.FormateadorAscii;
 import hotel.seguridad.Modulo;
 import hotel.seguridad.PoliticaAcceso;
 import hotel.seguridad.Usuario;
@@ -37,6 +40,8 @@ import hotel.servicio.LimpiezaService;
 import hotel.servicio.LimpiezaServiceImpl;
 import hotel.servicio.MantenimientoService;
 import hotel.servicio.MantenimientoServiceImpl;
+import hotel.servicio.ReporteService;
+import hotel.servicio.ReporteServiceImpl;
 import hotel.servicio.ReservaService;
 import hotel.servicio.ReservaServiceImpl;
 import hotel.servicio.Servicios;
@@ -109,8 +114,11 @@ public class SistemaHotel {
         LimpiezaService limpieza = new LimpiezaServiceImpl(operacionDao);
         MantenimientoService mantenimiento = new MantenimientoServiceImpl(operacionDao);
 
+        ReporteService reportes = new ReporteServiceImpl(
+                new ReporteDAOImpl(conexion), new FormateadorAscii(), CatalogoReportes.todos());
+
         this.servicios = new Servicios(clientes, habitaciones, reservas, estadias,
-                checkOut, cotizador, limpieza, mantenimiento);
+                checkOut, cotizador, limpieza, mantenimiento, reportes);
         this.autenticacion = new AutenticacionServiceImpl(new UsuarioDAOImpl(conexion));
         this.politica = definirPolitica();
     }
