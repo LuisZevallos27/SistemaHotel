@@ -2,9 +2,9 @@ package hotel.dao;
 
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
-import hotel.reporte.DefinicionReporte;
-import hotel.reporte.Tabla;
-import hotel.reporte.TipoParametro;
+import hotel.modelo.reporte.DefinicionReporte;
+import hotel.modelo.reporte.Tabla;
+import hotel.modelo.reporte.TipoParametro;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;

@@ -2,8 +2,8 @@ package hotel.vista;
 
 import hotel.excepcion.AccesoDatosException;
 import hotel.excepcion.NegocioException;
-import hotel.servicio.CotizadorService;
-import hotel.tarifa.Cotizacion;
+import hotel.controlador.CotizadorService;
+import hotel.modelo.tarifa.Cotizacion;
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridLayout;

@@ -1,6 +1,6 @@
 package hotel.dao;
 
-import hotel.habitacion.HabitacionLibre;
+import hotel.modelo.habitacion.HabitacionLibre;
 import java.time.LocalDate;
 import java.util.List;
 

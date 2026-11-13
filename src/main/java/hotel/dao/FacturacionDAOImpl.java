@@ -2,11 +2,11 @@ package hotel.dao;
 
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
-import hotel.facturacion.Factura;
-import hotel.facturacion.LineaFactura;
-import hotel.facturacion.MetodoPago;
-import hotel.facturacion.NuevaFactura;
-import hotel.facturacion.TipoComprobante;
+import hotel.modelo.facturacion.Factura;
+import hotel.modelo.facturacion.LineaFactura;
+import hotel.modelo.facturacion.MetodoPago;
+import hotel.modelo.facturacion.NuevaFactura;
+import hotel.modelo.facturacion.TipoComprobante;
 import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.Connection;

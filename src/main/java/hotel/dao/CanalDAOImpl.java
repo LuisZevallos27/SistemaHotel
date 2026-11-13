@@ -1,6 +1,6 @@
 package hotel.dao;
 
-import hotel.canal.Canal;
+import hotel.modelo.canal.Canal;
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
 import java.sql.CallableStatement;

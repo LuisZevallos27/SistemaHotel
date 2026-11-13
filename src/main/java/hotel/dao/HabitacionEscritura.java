@@ -1,6 +1,6 @@
 package hotel.dao;
 
-import hotel.habitacion.EstadoHabitacion;
+import hotel.modelo.habitacion.EstadoHabitacion;
 
 public interface HabitacionEscritura {
 

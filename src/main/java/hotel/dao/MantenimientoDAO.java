@@ -1,7 +1,7 @@
 package hotel.dao;
 
-import hotel.operacion.Mantenimiento;
-import hotel.operacion.Prioridad;
+import hotel.modelo.operacion.Mantenimiento;
+import hotel.modelo.operacion.Prioridad;
 import java.util.List;
 
 public interface MantenimientoDAO {

@@ -1,7 +1,7 @@
 package hotel.dao;
 
-import hotel.reserva.RegistroHistorial;
-import hotel.reserva.Reserva;
+import hotel.modelo.reserva.RegistroHistorial;
+import hotel.modelo.reserva.Reserva;
 import java.util.List;
 import java.util.Optional;
 

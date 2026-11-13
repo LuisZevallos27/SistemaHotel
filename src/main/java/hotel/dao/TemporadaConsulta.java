@@ -1,6 +1,6 @@
 package hotel.dao;
 
-import hotel.tarifa.Temporada;
+import hotel.modelo.tarifa.Temporada;
 import java.util.List;
 
 public interface TemporadaConsulta {

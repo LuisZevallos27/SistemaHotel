@@ -1,6 +1,6 @@
 package hotel.dao;
 
-import hotel.facturacion.MetodoPago;
+import hotel.modelo.facturacion.MetodoPago;
 
 public interface PagoEscritura {
 

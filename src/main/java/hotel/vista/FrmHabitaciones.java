@@ -2,9 +2,9 @@ package hotel.vista;
 
 import hotel.excepcion.AccesoDatosException;
 import hotel.excepcion.NegocioException;
-import hotel.habitacion.EstadoHabitacion;
-import hotel.habitacion.Habitacion;
-import hotel.servicio.HabitacionService;
+import hotel.modelo.habitacion.EstadoHabitacion;
+import hotel.modelo.habitacion.Habitacion;
+import hotel.controlador.HabitacionService;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.util.ArrayList;

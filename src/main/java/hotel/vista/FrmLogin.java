@@ -2,8 +2,8 @@ package hotel.vista;
 
 import hotel.excepcion.AccesoDatosException;
 import hotel.excepcion.NegocioException;
-import hotel.seguridad.Usuario;
-import hotel.servicio.AutenticacionService;
+import hotel.modelo.seguridad.Usuario;
+import hotel.controlador.AutenticacionService;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;

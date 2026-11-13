@@ -1,6 +1,6 @@
 package hotel.dao;
 
-import hotel.seguridad.Credencial;
+import hotel.modelo.seguridad.Credencial;
 import java.util.Optional;
 
 public interface UsuarioConsulta {

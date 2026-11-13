@@ -1,12 +1,12 @@
 package hotel.vista;
 
-import hotel.canal.Canal;
+import hotel.modelo.canal.Canal;
 import hotel.excepcion.AccesoDatosException;
 import hotel.excepcion.NegocioException;
-import hotel.habitacion.HabitacionLibre;
-import hotel.reserva.Reserva;
-import hotel.reserva.SolicitudReserva;
-import hotel.servicio.ReservaService;
+import hotel.modelo.habitacion.HabitacionLibre;
+import hotel.modelo.reserva.Reserva;
+import hotel.modelo.reserva.SolicitudReserva;
+import hotel.controlador.ReservaService;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;

@@ -2,10 +2,10 @@ package hotel.vista;
 
 import hotel.excepcion.AccesoDatosException;
 import hotel.excepcion.NegocioException;
-import hotel.reporte.DefinicionReporte;
-import hotel.reporte.ParametroReporte;
-import hotel.reporte.TipoParametro;
-import hotel.servicio.ReporteService;
+import hotel.modelo.reporte.DefinicionReporte;
+import hotel.modelo.reporte.ParametroReporte;
+import hotel.modelo.reporte.TipoParametro;
+import hotel.controlador.ReporteService;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;

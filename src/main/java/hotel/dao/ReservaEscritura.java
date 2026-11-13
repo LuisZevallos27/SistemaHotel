@@ -1,6 +1,6 @@
 package hotel.dao;
 
-import hotel.reserva.Reserva;
+import hotel.modelo.reserva.Reserva;
 
 public interface ReservaEscritura {
 

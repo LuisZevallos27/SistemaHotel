@@ -1,6 +1,6 @@
 package hotel.dao;
 
-import hotel.tarifa.Descuentos;
+import hotel.modelo.tarifa.Descuentos;
 import java.util.Optional;
 
 public interface DescuentoClienteConsulta {

@@ -1,7 +1,7 @@
 package hotel.dao;
 
-import hotel.facturacion.Factura;
-import hotel.facturacion.LineaFactura;
+import hotel.modelo.facturacion.Factura;
+import hotel.modelo.facturacion.LineaFactura;
 import java.util.List;
 import java.util.Optional;
 

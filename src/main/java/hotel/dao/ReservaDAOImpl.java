@@ -2,10 +2,10 @@ package hotel.dao;
 
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
-import hotel.reserva.EstadosReserva;
-import hotel.reserva.RegistroHistorial;
-import hotel.reserva.Reserva;
-import hotel.reserva.ReservaBuilder;
+import hotel.modelo.reserva.EstadosReserva;
+import hotel.modelo.reserva.RegistroHistorial;
+import hotel.modelo.reserva.Reserva;
+import hotel.modelo.reserva.ReservaBuilder;
 import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.Connection;

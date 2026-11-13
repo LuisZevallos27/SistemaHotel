@@ -1,15 +1,15 @@
 package hotel.vista;
 
-import hotel.comando.ComandoCancelarReserva;
-import hotel.comando.ComandoConfirmarReserva;
-import hotel.comando.ComandoMarcarNoShow;
-import hotel.comando.HistorialComandos;
+import hotel.controlador.comando.ComandoCancelarReserva;
+import hotel.controlador.comando.ComandoConfirmarReserva;
+import hotel.controlador.comando.ComandoMarcarNoShow;
+import hotel.controlador.comando.HistorialComandos;
 import hotel.excepcion.AccesoDatosException;
 import hotel.excepcion.NegocioException;
-import hotel.facturacion.MetodoPago;
-import hotel.reserva.RegistroHistorial;
-import hotel.reserva.Reserva;
-import hotel.servicio.ReservaService;
+import hotel.modelo.facturacion.MetodoPago;
+import hotel.modelo.reserva.RegistroHistorial;
+import hotel.modelo.reserva.Reserva;
+import hotel.controlador.ReservaService;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;

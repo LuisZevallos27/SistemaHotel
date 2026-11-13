@@ -2,8 +2,8 @@ package hotel.dao;
 
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
-import hotel.seguridad.Credencial;
-import hotel.seguridad.Usuario;
+import hotel.modelo.seguridad.Credencial;
+import hotel.modelo.seguridad.Usuario;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;

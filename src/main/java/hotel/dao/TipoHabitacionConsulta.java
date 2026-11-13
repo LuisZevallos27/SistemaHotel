@@ -1,6 +1,6 @@
 package hotel.dao;
 
-import hotel.habitacion.TipoHabitacion;
+import hotel.modelo.habitacion.TipoHabitacion;
 import java.util.List;
 
 public interface TipoHabitacionConsulta {

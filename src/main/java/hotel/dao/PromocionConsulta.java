@@ -1,6 +1,6 @@
 package hotel.dao;
 
-import hotel.tarifa.Promocion;
+import hotel.modelo.tarifa.Promocion;
 import java.time.LocalDate;
 import java.util.Optional;
 

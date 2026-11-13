@@ -1,9 +1,9 @@
 package hotel.vista;
 
-import hotel.seguridad.Modulo;
-import hotel.seguridad.PoliticaAcceso;
-import hotel.seguridad.Usuario;
-import hotel.servicio.Servicios;
+import hotel.modelo.seguridad.Modulo;
+import hotel.modelo.seguridad.PoliticaAcceso;
+import hotel.modelo.seguridad.Usuario;
+import hotel.controlador.Servicios;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;

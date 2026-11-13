@@ -2,10 +2,10 @@ package hotel.dao;
 
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
-import hotel.habitacion.CreadorHabitaciones;
-import hotel.habitacion.DatosHabitacion;
-import hotel.habitacion.EstadoHabitacion;
-import hotel.habitacion.Habitacion;
+import hotel.modelo.habitacion.CreadorHabitaciones;
+import hotel.modelo.habitacion.DatosHabitacion;
+import hotel.modelo.habitacion.EstadoHabitacion;
+import hotel.modelo.habitacion.Habitacion;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;

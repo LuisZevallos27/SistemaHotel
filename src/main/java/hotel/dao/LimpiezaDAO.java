@@ -1,8 +1,8 @@
 package hotel.dao;
 
-import hotel.operacion.Empleado;
-import hotel.operacion.EstadoTarea;
-import hotel.operacion.TareaLimpieza;
+import hotel.modelo.operacion.Empleado;
+import hotel.modelo.operacion.EstadoTarea;
+import hotel.modelo.operacion.TareaLimpieza;
 import java.util.List;
 
 public interface LimpiezaDAO {

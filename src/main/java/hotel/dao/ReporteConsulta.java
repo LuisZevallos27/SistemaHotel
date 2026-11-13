@@ -1,7 +1,7 @@
 package hotel.dao;
 
-import hotel.reporte.DefinicionReporte;
-import hotel.reporte.Tabla;
+import hotel.modelo.reporte.DefinicionReporte;
+import hotel.modelo.reporte.Tabla;
 import java.util.List;
 
 public interface ReporteConsulta {

@@ -1,9 +1,9 @@
 package hotel.dao;
 
 import hotel.config.ProveedorConexion;
-import hotel.estadia.Consumo;
-import hotel.estadia.Estadia;
-import hotel.estadia.Servicio;
+import hotel.modelo.estadia.Consumo;
+import hotel.modelo.estadia.Estadia;
+import hotel.modelo.estadia.Servicio;
 import hotel.excepcion.AccesoDatosException;
 import java.sql.CallableStatement;
 import java.sql.Connection;

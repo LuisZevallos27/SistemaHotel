@@ -2,11 +2,11 @@ package hotel.dao;
 
 import hotel.config.ProveedorConexion;
 import hotel.excepcion.AccesoDatosException;
-import hotel.operacion.Empleado;
-import hotel.operacion.EstadoTarea;
-import hotel.operacion.Mantenimiento;
-import hotel.operacion.Prioridad;
-import hotel.operacion.TareaLimpieza;
+import hotel.modelo.operacion.Empleado;
+import hotel.modelo.operacion.EstadoTarea;
+import hotel.modelo.operacion.Mantenimiento;
+import hotel.modelo.operacion.Prioridad;
+import hotel.modelo.operacion.TareaLimpieza;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;

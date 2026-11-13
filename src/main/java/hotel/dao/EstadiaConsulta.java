@@ -1,8 +1,8 @@
 package hotel.dao;
 
-import hotel.estadia.Consumo;
-import hotel.estadia.Estadia;
-import hotel.estadia.Servicio;
+import hotel.modelo.estadia.Consumo;
+import hotel.modelo.estadia.Estadia;
+import hotel.modelo.estadia.Servicio;
 import java.util.List;
 
 public interface EstadiaConsulta {
