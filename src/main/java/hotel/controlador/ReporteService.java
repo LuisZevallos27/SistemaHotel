@@ -2,6 +2,7 @@ package hotel.controlador;
 
 import hotel.excepcion.NegocioException;
 import hotel.modelo.reporte.DefinicionReporte;
+import java.nio.file.Path;
 import java.util.List;
 
 public interface ReporteService {
@@ -10,4 +11,10 @@ public interface ReporteService {
 
     String generar(DefinicionReporte definicion, List<String> valores, String generadoPor)
             throws NegocioException;
+
+    String nombreArchivoSugerido(DefinicionReporte definicion);
+
+    Path destinoTxt(Path destino);
+
+    void exportar(String contenido, Path destino) throws NegocioException;
 }

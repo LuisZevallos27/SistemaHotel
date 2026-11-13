@@ -1,5 +1,6 @@
 package hotel;
 
+import hotel.modelo.reporte.ExportadorTxt;
 import hotel.config.ConexionBD;
 import hotel.config.ProveedorConexion;
 import hotel.dao.CanalDAOImpl;
@@ -115,7 +116,8 @@ public class SistemaHotel {
         MantenimientoService mantenimiento = new MantenimientoServiceImpl(operacionDao);
 
         ReporteService reportes = new ReporteServiceImpl(
-                new ReporteDAOImpl(conexion), new FormateadorAscii(), CatalogoReportes.todos());
+                new ReporteDAOImpl(conexion), new FormateadorAscii(), new ExportadorTxt(),
+                CatalogoReportes.todos());
 
         this.servicios = new Servicios(clientes, habitaciones, reservas, estadias,
                 checkOut, cotizador, limpieza, mantenimiento, reportes);

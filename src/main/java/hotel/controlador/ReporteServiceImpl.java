@@ -3,16 +3,21 @@ package hotel.controlador;
 import hotel.dao.ReporteConsulta;
 import hotel.excepcion.NegocioException;
 import hotel.modelo.reporte.DefinicionReporte;
+import hotel.modelo.reporte.ExportadorReporte;
 import hotel.modelo.reporte.FormateadorReporte;
 import hotel.modelo.reporte.ParametroReporte;
 import hotel.modelo.reporte.Tabla;
 import hotel.modelo.reporte.TipoParametro;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ReporteServiceImpl implements ReporteService {
 
@@ -21,12 +26,14 @@ public class ReporteServiceImpl implements ReporteService {
 
     private final ReporteConsulta consulta;
     private final FormateadorReporte formateador;
+    private final ExportadorReporte exportador;
     private final List<DefinicionReporte> catalogo;
 
     public ReporteServiceImpl(ReporteConsulta consulta, FormateadorReporte formateador,
-            List<DefinicionReporte> catalogo) {
+            ExportadorReporte exportador, List<DefinicionReporte> catalogo) {
         this.consulta = consulta;
         this.formateador = formateador;
+        this.exportador = exportador;
         this.catalogo = List.copyOf(catalogo);
     }
 
@@ -45,6 +52,40 @@ public class ReporteServiceImpl implements ReporteService {
         String subtitulo = "Generado: " + LocalDateTime.now().format(FORMATO_FECHA_HORA)
                 + " | Por: " + generadoPor + filtros(definicion, argumentos);
         return formateador.formatear("REPORTE: " + definicion.nombre().toUpperCase(), subtitulo, completa);
+    }
+
+    @Override
+    public String nombreArchivoSugerido(DefinicionReporte definicion) {
+        String base = Normalizer.normalize(definicion.nombre(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+        return "reporte_" + base + "_" + LocalDate.now() + ".txt";
+    }
+
+    @Override
+    public Path destinoTxt(Path destino) {
+        String nombre = destino.getFileName().toString();
+        if (nombre.toLowerCase(Locale.ROOT).endsWith(".txt")) {
+            return destino;
+        }
+        return destino.resolveSibling(nombre + ".txt");
+    }
+
+    @Override
+    public void exportar(String contenido, Path destino) throws NegocioException {
+        if (contenido == null || contenido.trim().isEmpty()) {
+            throw new NegocioException("Genere un reporte antes de exportarlo.");
+        }
+        if (destino == null) {
+            throw new NegocioException("Indique el archivo de destino.");
+        }
+        try {
+            exportador.exportar(contenido, destinoTxt(destino));
+        } catch (IOException e) {
+            throw new NegocioException("No se pudo guardar el archivo: " + e.getMessage());
+        }
     }
 
     private List<Object> convertir(DefinicionReporte definicion, List<String> textos)

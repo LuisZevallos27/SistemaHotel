@@ -1,21 +1,24 @@
 package hotel.vista;
 
+import hotel.controlador.ReporteService;
 import hotel.excepcion.AccesoDatosException;
 import hotel.excepcion.NegocioException;
 import hotel.modelo.reporte.DefinicionReporte;
 import hotel.modelo.reporte.ParametroReporte;
 import hotel.modelo.reporte.TipoParametro;
-import hotel.controlador.ReporteService;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -25,6 +28,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class FrmReportes extends JFrame {
 
@@ -34,7 +38,11 @@ public class FrmReportes extends JFrame {
     private final JLabel lblDescripcion = new JLabel(" ");
     private final JPanel panelParametros = new JPanel(new GridLayout(0, 2, 5, 5));
     private final JTextArea areaReporte = new JTextArea();
+    private final JButton btnExportar = new JButton("Exportar a TXT");
     private final List<JTextField> campos = new ArrayList<>();
+
+    private String ultimoReporte;
+    private DefinicionReporte ultimaDefinicion;
 
     public FrmReportes(ReporteService servicio, String generadoPor) {
         this.servicio = servicio;
@@ -59,8 +67,10 @@ public class FrmReportes extends JFrame {
         add(scrollLista, BorderLayout.WEST);
 
         JButton btnGenerar = new JButton("Generar reporte");
+        btnExportar.setEnabled(false);
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.LEFT));
         botones.add(btnGenerar);
+        botones.add(btnExportar);
 
         JPanel configuracion = new JPanel(new BorderLayout(5, 5));
         configuracion.setBorder(BorderFactory.createTitledBorder("Parámetros"));
@@ -83,6 +93,7 @@ public class FrmReportes extends JFrame {
             }
         });
         btnGenerar.addActionListener(e -> generar());
+        btnExportar.addActionListener(e -> exportar());
 
         if (modelo.size() > 0) {
             lista.setSelectedIndex(0);
@@ -128,8 +139,12 @@ public class FrmReportes extends JFrame {
             valores.add(campo.getText());
         }
         try {
-            areaReporte.setText(servicio.generar(definicion, valores, generadoPor));
+            String texto = servicio.generar(definicion, valores, generadoPor);
+            areaReporte.setText(texto);
             areaReporte.setCaretPosition(0);
+            ultimoReporte = texto;
+            ultimaDefinicion = definicion;
+            btnExportar.setEnabled(true);
         } catch (NegocioException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
                     "Validación", JOptionPane.WARNING_MESSAGE);
@@ -137,6 +152,37 @@ public class FrmReportes extends JFrame {
             String detalle = ex.getCause() != null ? "\n" + ex.getCause().getMessage() : "";
             JOptionPane.showMessageDialog(this, ex.getMessage() + detalle,
                     "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void exportar() {
+        if (ultimoReporte == null || ultimaDefinicion == null) {
+            JOptionPane.showMessageDialog(this, "Genere un reporte antes de exportarlo.");
+            return;
+        }
+        JFileChooser selector = new JFileChooser();
+        selector.setDialogTitle("Exportar reporte a TXT");
+        selector.setFileFilter(new FileNameExtensionFilter("Archivo de texto (*.txt)", "txt"));
+        selector.setSelectedFile(new File(servicio.nombreArchivoSugerido(ultimaDefinicion)));
+        if (selector.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        Path destino = servicio.destinoTxt(selector.getSelectedFile().toPath());
+        if (destino.toFile().exists()) {
+            int opcion = JOptionPane.showConfirmDialog(this,
+                    "El archivo ya existe:\n" + destino + "\n¿Desea reemplazarlo?",
+                    "Confirmar", JOptionPane.YES_NO_OPTION);
+            if (opcion != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+        try {
+            servicio.exportar(ultimoReporte, destino);
+            JOptionPane.showMessageDialog(this, "Reporte exportado en:\n" + destino.toAbsolutePath(),
+                    "Exportación completa", JOptionPane.INFORMATION_MESSAGE);
+        } catch (NegocioException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "No se pudo exportar", JOptionPane.WARNING_MESSAGE);
         }
     }
 }
