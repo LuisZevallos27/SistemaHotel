@@ -144,6 +144,7 @@ public class SistemaHotel {
                 Modulo.ESTADIAS, Modulo.COTIZADOR));
         permisos.put("Caja", EnumSet.of(Modulo.RESERVAS, Modulo.ESTADIAS, Modulo.COTIZADOR));
         permisos.put("Housekeeping", EnumSet.of(Modulo.HABITACIONES, Modulo.OPERACIONES));
+        permisos.put("Mantenimiento", EnumSet.of(Modulo.HABITACIONES, Modulo.OPERACIONES));
         permisos.put("Gerencia", EnumSet.of(Modulo.HABITACIONES, Modulo.RESERVAS, Modulo.COTIZADOR,
                 Modulo.REPORTES));
         return new PoliticaAcceso(permisos);
