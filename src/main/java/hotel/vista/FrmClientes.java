@@ -4,17 +4,18 @@ import hotel.modelo.Cliente;
 import hotel.excepcion.AccesoDatosException;
 import hotel.controlador.ClienteService;
 import hotel.excepcion.NegocioException;
+import hotel.vista.estilo.Encabezado;
+import hotel.vista.estilo.Iconos;
+import hotel.vista.estilo.Tabla;
+import hotel.vista.estilo.Tarjeta;
+import hotel.vista.estilo.Tema;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
@@ -39,7 +40,7 @@ public class FrmClientes extends JFrame {
             return false;
         }
     };
-    private final JTable tabla = new JTable(modelo);
+    private final JTable tabla = new Tabla(modelo);
     private int idSeleccionado = 0;
 
     public FrmClientes(ClienteService servicio) {
@@ -48,47 +49,48 @@ public class FrmClientes extends JFrame {
 
         setTitle("Gestión de Clientes - Hotel");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(900, 520);
+        setSize(1000, 780);
+        setMinimumSize(new java.awt.Dimension(860, 600));
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout());
 
-        JPanel form = new JPanel(new GridLayout(6, 2, 5, 5));
-        form.setBorder(BorderFactory.createTitledBorder("Datos del cliente"));
-        form.add(new JLabel("Tipo de documento:"));
-        form.add(cboTipoDoc);
-        form.add(new JLabel("Documento:"));
-        form.add(txtDocumento);
-        form.add(new JLabel("Nombres:"));
-        form.add(txtNombres);
-        form.add(new JLabel("Apellidos:"));
-        form.add(txtApellidos);
-        form.add(new JLabel("Teléfono:"));
-        form.add(txtTelefono);
-        form.add(new JLabel("Correo:"));
-        form.add(txtCorreo);
+        JButton btnNuevo = Tema.boton("Nuevo", Tema.Variante.SECUNDARIO);
+        JButton btnGuardar = Tema.boton("Guardar", Tema.Variante.PRIMARIO);
+        JButton btnEliminar = Tema.boton("Eliminar", Tema.Variante.PELIGRO);
 
-        JPanel nac = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        nac.add(new JLabel("Nacionalidad:"));
-        nac.add(txtNacionalidad);
+        JPanel formulario = Tema.apilar(14,
+                Tema.fila(new int[]{2, 3, 3, 3},
+                        Tema.campo("Tipo de documento", cboTipoDoc),
+                        Tema.campo("Documento", txtDocumento),
+                        Tema.campo("Nombres", txtNombres),
+                        Tema.campo("Apellidos", txtApellidos)),
+                Tema.fila(new int[]{3, 4, 3},
+                        Tema.campo("Teléfono", txtTelefono),
+                        Tema.campo("Correo electrónico", txtCorreo),
+                        Tema.campo("Nacionalidad", txtNacionalidad)));
 
-        JButton btnNuevo = new JButton("Nuevo");
-        JButton btnGuardar = new JButton("Guardar");
-        JButton btnEliminar = new JButton("Eliminar");
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        botones.add(btnNuevo);
-        botones.add(btnGuardar);
-        botones.add(btnEliminar);
+        JPanel botones = Tema.barra(FlowLayout.RIGHT, btnNuevo, btnEliminar, btnGuardar);
+        JPanel contenidoForm = new JPanel(new BorderLayout(0, 16));
+        contenidoForm.setOpaque(false);
+        contenidoForm.add(formulario, BorderLayout.CENTER);
+        contenidoForm.add(botones, BorderLayout.SOUTH);
 
-        JPanel centroNorte = new JPanel(new BorderLayout());
-        centroNorte.add(form, BorderLayout.CENTER);
-        centroNorte.add(nac, BorderLayout.SOUTH);
+        JPanel contenidoTabla = new JPanel(new BorderLayout(0, 8));
+        contenidoTabla.setOpaque(false);
+        contenidoTabla.add(Tema.scroll(tabla), BorderLayout.CENTER);
+        JPanel pie = new JPanel(new BorderLayout());
+        pie.setOpaque(false);
+        pie.add(Tema.contador(modelo), BorderLayout.EAST);
+        contenidoTabla.add(pie, BorderLayout.SOUTH);
 
-        JPanel norte = new JPanel(new BorderLayout());
-        norte.add(centroNorte, BorderLayout.CENTER);
-        norte.add(botones, BorderLayout.SOUTH);
+        JPanel cuerpo = Tema.cuerpo();
+        cuerpo.add(new Tarjeta("Datos del cliente", contenidoForm), BorderLayout.NORTH);
+        cuerpo.add(new Tarjeta("Listado de clientes", contenidoTabla), BorderLayout.CENTER);
 
-        add(norte, BorderLayout.NORTH);
-        add(new JScrollPane(tabla), BorderLayout.CENTER);
+        add(new Encabezado("Clientes", "Registre, edite y consulte a los huéspedes del hotel",
+                Iconos.CLIENTES), BorderLayout.NORTH);
+        add(cuerpo, BorderLayout.CENTER);
+        Tema.preparar(this, Iconos.CLIENTES);
 
         btnNuevo.addActionListener(e -> limpiar());
         btnGuardar.addActionListener(e -> guardar());

@@ -7,20 +7,21 @@ import hotel.modelo.habitacion.HabitacionLibre;
 import hotel.modelo.reserva.Reserva;
 import hotel.modelo.reserva.SolicitudReserva;
 import hotel.controlador.ReservaService;
+import hotel.vista.estilo.Encabezado;
+import hotel.vista.estilo.Iconos;
+import hotel.vista.estilo.Tarjeta;
+import hotel.vista.estilo.Tema;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
-import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -57,43 +58,45 @@ public class DlgNuevaReserva extends JDialog {
         }
         modeloHabitaciones.addElement(AUTOMATICA);
 
-        setSize(520, 470);
+        setSize(700, 640);
+        setMinimumSize(new java.awt.Dimension(640, 600));
         setLocationRelativeTo(propietario);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout());
 
-        JPanel form = new JPanel(new GridLayout(10, 2, 5, 5));
-        form.setBorder(BorderFactory.createTitledBorder("Datos de la reserva"));
-        form.add(new JLabel("Documento del cliente:"));
-        form.add(txtDocumento);
-        form.add(new JLabel("Tipo de habitación:"));
-        form.add(cboTipo);
-        form.add(new JLabel("Canal de reserva:"));
-        form.add(cboCanal);
-        form.add(new JLabel("Entrada (AAAA-MM-DD):"));
-        form.add(txtEntrada);
-        form.add(new JLabel("Salida (AAAA-MM-DD):"));
-        form.add(txtSalida);
-        form.add(new JLabel("Adultos:"));
-        form.add(spnAdultos);
-        form.add(new JLabel("Niños:"));
-        form.add(spnNinos);
-        form.add(new JLabel("Código de promoción (opcional):"));
-        form.add(txtPromocion);
-        form.add(new JLabel("Observaciones (opcional):"));
-        form.add(txtObservaciones);
-        form.add(new JLabel("Habitación:"));
-        form.add(cboHabitacion);
+        JPanel form = Tema.apilar(14,
+                Tema.fila(new int[]{1, 1},
+                        Tema.campo("Documento del cliente", txtDocumento),
+                        Tema.campo("Canal de reserva", cboCanal)),
+                Tema.fila(new int[]{1, 1},
+                        Tema.campo("Tipo de habitación", cboTipo),
+                        Tema.campo("Habitación", cboHabitacion)),
+                Tema.fila(new int[]{1, 1},
+                        Tema.campo("Entrada (AAAA-MM-DD)", txtEntrada),
+                        Tema.campo("Salida (AAAA-MM-DD)", txtSalida)),
+                Tema.fila(new int[]{1, 1},
+                        Tema.campo("Adultos", spnAdultos),
+                        Tema.campo("Niños", spnNinos)),
+                Tema.fila(new int[]{1, 1},
+                        Tema.campo("Código de promoción (opcional)", txtPromocion),
+                        Tema.campo("Observaciones (opcional)", txtObservaciones)));
 
-        JButton btnBuscar = new JButton("Buscar disponibilidad");
-        JButton btnCrear = new JButton("Crear reserva");
-        JButton btnCerrar = new JButton("Cerrar");
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        botones.add(btnBuscar);
-        botones.add(btnCrear);
-        botones.add(btnCerrar);
+        JButton btnBuscar = Tema.boton("Buscar disponibilidad", Tema.Variante.SECUNDARIO);
+        JButton btnCrear = Tema.boton("Crear reserva", Tema.Variante.PRIMARIO);
+        JButton btnCerrar = Tema.boton("Cerrar", Tema.Variante.SECUNDARIO);
+        JPanel botones = Tema.barra(FlowLayout.RIGHT, btnBuscar, btnCerrar, btnCrear);
 
-        add(form, BorderLayout.CENTER);
-        add(botones, BorderLayout.SOUTH);
+        JPanel contenido = new JPanel(new BorderLayout(0, 18));
+        contenido.setOpaque(false);
+        contenido.add(form, BorderLayout.CENTER);
+        contenido.add(botones, BorderLayout.SOUTH);
+
+        JPanel cuerpo = Tema.cuerpo();
+        cuerpo.add(new Tarjeta("Datos de la reserva", contenido), BorderLayout.CENTER);
+
+        add(new Encabezado("Nueva reserva", "Registre una reserva y asigne una habitación disponible",
+                Iconos.RESERVAS), BorderLayout.NORTH);
+        add(cuerpo, BorderLayout.CENTER);
+        Tema.preparar(this, Iconos.RESERVAS);
 
         btnBuscar.addActionListener(e -> buscarDisponibilidad());
         btnCrear.addActionListener(e -> crear());

@@ -54,6 +54,7 @@ import hotel.modelo.tarifa.FabricaTarifaPromocion;
 import hotel.modelo.tarifa.FabricaTarifaTemporada;
 import hotel.vista.FrmLogin;
 import hotel.vista.FrmPrincipal;
+import hotel.vista.estilo.Tema;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -126,6 +127,7 @@ public class SistemaHotel {
     }
 
     public static void main(String[] args) {
+        Tema.instalar();
         SwingUtilities.invokeLater(() -> new SistemaHotel().mostrarLogin());
     }
 

@@ -6,7 +6,13 @@ import hotel.excepcion.NegocioException;
 import hotel.modelo.reporte.DefinicionReporte;
 import hotel.modelo.reporte.ParametroReporte;
 import hotel.modelo.reporte.TipoParametro;
+import hotel.vista.estilo.Encabezado;
+import hotel.vista.estilo.Iconos;
+import hotel.vista.estilo.Tarjeta;
+import hotel.vista.estilo.Tema;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -16,6 +22,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -38,7 +45,7 @@ public class FrmReportes extends JFrame {
     private final JLabel lblDescripcion = new JLabel(" ");
     private final JPanel panelParametros = new JPanel(new GridLayout(0, 2, 5, 5));
     private final JTextArea areaReporte = new JTextArea();
-    private final JButton btnExportar = new JButton("Exportar a TXT");
+    private final JButton btnExportar = Tema.boton("Exportar a TXT", Tema.Variante.SECUNDARIO);
     private final List<JTextField> campos = new ArrayList<>();
 
     private String ultimoReporte;
@@ -57,35 +64,50 @@ public class FrmReportes extends JFrame {
 
         setTitle("Reportes gerenciales - Hotel");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(1100, 640);
+        setSize(1200, 720);
+        setMinimumSize(new Dimension(980, 600));
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout());
 
-        JScrollPane scrollLista = new JScrollPane(lista);
-        scrollLista.setPreferredSize(new Dimension(260, 0));
-        scrollLista.setBorder(BorderFactory.createTitledBorder("Reportes disponibles"));
-        add(scrollLista, BorderLayout.WEST);
+        lista.setCellRenderer(new ElementoReporte());
+        lista.setFixedCellHeight(46);
+        lista.setBorder(BorderFactory.createEmptyBorder());
+        JScrollPane scrollLista = Tema.scroll(lista);
+        Tarjeta tarjetaLista = new Tarjeta("Reportes disponibles", scrollLista);
+        tarjetaLista.setPreferredSize(new Dimension(310, 0));
 
-        JButton btnGenerar = new JButton("Generar reporte");
+        JButton btnGenerar = Tema.boton("Generar reporte", Tema.Variante.PRIMARIO);
         btnExportar.setEnabled(false);
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        botones.add(btnGenerar);
-        botones.add(btnExportar);
+        JPanel botones = Tema.barra(FlowLayout.LEFT, btnGenerar, btnExportar);
 
-        JPanel configuracion = new JPanel(new BorderLayout(5, 5));
-        configuracion.setBorder(BorderFactory.createTitledBorder("Parámetros"));
-        configuracion.add(lblDescripcion, BorderLayout.NORTH);
-        configuracion.add(panelParametros, BorderLayout.CENTER);
-        configuracion.add(botones, BorderLayout.SOUTH);
+        lblDescripcion.setFont(Tema.fuente(Font.PLAIN, 13));
+        lblDescripcion.setForeground(Tema.TEXTO_SUAVE);
+        JPanel contenidoConfig = new JPanel(new BorderLayout(0, 12));
+        contenidoConfig.setOpaque(false);
+        contenidoConfig.add(lblDescripcion, BorderLayout.NORTH);
+        contenidoConfig.add(panelParametros, BorderLayout.CENTER);
+        contenidoConfig.add(botones, BorderLayout.SOUTH);
+        panelParametros.setOpaque(false);
+        panelParametros.setLayout(new GridLayout(0, 2, 14, 12));
 
-        areaReporte.setEditable(false);
+        Tema.estilizarArea(areaReporte);
         areaReporte.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         areaReporte.setText("Seleccione un reporte y pulse \"Generar reporte\".");
 
-        JPanel derecha = new JPanel(new BorderLayout(5, 5));
-        derecha.add(configuracion, BorderLayout.NORTH);
-        derecha.add(new JScrollPane(areaReporte), BorderLayout.CENTER);
-        add(derecha, BorderLayout.CENTER);
+        JPanel derecha = new JPanel(new BorderLayout(0, 16));
+        derecha.setOpaque(false);
+        derecha.add(new Tarjeta("Parámetros", contenidoConfig), BorderLayout.NORTH);
+        derecha.add(new Tarjeta("Resultado", Tema.scroll(areaReporte)), BorderLayout.CENTER);
+
+        JPanel cuerpo = Tema.cuerpo();
+        cuerpo.setLayout(new BorderLayout(18, 0));
+        cuerpo.add(tarjetaLista, BorderLayout.WEST);
+        cuerpo.add(derecha, BorderLayout.CENTER);
+
+        add(new Encabezado("Reportes gerenciales", "Genere indicadores del hotel y expórtelos a un archivo de texto",
+                Iconos.REPORTES), BorderLayout.NORTH);
+        add(cuerpo, BorderLayout.CENTER);
+        Tema.preparar(this, Iconos.REPORTES);
 
         lista.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -107,8 +129,9 @@ public class FrmReportes extends JFrame {
         if (definicion != null) {
             lblDescripcion.setText("<html>" + definicion.descripcion() + "</html>");
             for (ParametroReporte parametro : definicion.parametros()) {
-                panelParametros.add(new JLabel(etiqueta(parametro)));
+                panelParametros.add(Tema.etiqueta(etiqueta(parametro)));
                 JTextField campo = new JTextField(parametro.valorInicial());
+                Tema.estilizarCampo(campo);
                 campos.add(campo);
                 panelParametros.add(campo);
             }
@@ -183,6 +206,24 @@ public class FrmReportes extends JFrame {
         } catch (NegocioException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
                     "No se pudo exportar", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    /** Fila de la lista de reportes: franja dorada y fondo azul marino al seleccionar. */
+    private static final class ElementoReporte extends DefaultListCellRenderer {
+
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                boolean seleccionado, boolean foco) {
+            super.getListCellRendererComponent(list, value, index, seleccionado, false);
+            setFont(Tema.fuente(seleccionado ? Font.BOLD : Font.PLAIN, 13));
+            setForeground(seleccionado ? Color.WHITE : Tema.TEXTO);
+            setBackground(seleccionado ? Tema.NAVY : Color.WHITE);
+            setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, seleccionado ? 4 : 0, 1, 0,
+                            seleccionado ? Tema.DORADO : Tema.BORDE),
+                    BorderFactory.createEmptyBorder(0, seleccionado ? 12 : 16, 0, 12)));
+            return this;
         }
     }
 }

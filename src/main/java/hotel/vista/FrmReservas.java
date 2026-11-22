@@ -10,6 +10,11 @@ import hotel.modelo.facturacion.MetodoPago;
 import hotel.modelo.reserva.RegistroHistorial;
 import hotel.modelo.reserva.Reserva;
 import hotel.controlador.ReservaService;
+import hotel.vista.estilo.Encabezado;
+import hotel.vista.estilo.Iconos;
+import hotel.vista.estilo.Tabla;
+import hotel.vista.estilo.Tarjeta;
+import hotel.vista.estilo.Tema;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -39,7 +44,7 @@ public class FrmReservas extends JFrame {
     private final Integer idUsuario;
     private final HistorialComandos comandos = new HistorialComandos();
     private final JComboBox<String> cboFiltro = new JComboBox<>();
-    private final JButton btnDeshacer = new JButton("Deshacer");
+    private final JButton btnDeshacer = Tema.boton("Deshacer", Tema.Variante.SECUNDARIO);
     private List<Reserva> reservas = new ArrayList<>();
 
     private final DefaultTableModel modelo = new DefaultTableModel(
@@ -50,7 +55,7 @@ public class FrmReservas extends JFrame {
             return false;
         }
     };
-    private final JTable tabla = new JTable(modelo);
+    private final JTable tabla = new Tabla(modelo);
 
     public FrmReservas(ReservaService servicio, Integer idUsuario) {
         this.servicio = servicio;
@@ -58,40 +63,62 @@ public class FrmReservas extends JFrame {
 
         setTitle("Reservas - Hotel");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(1250, 520);
+        setSize(1320, 700);
+        setMinimumSize(new java.awt.Dimension(1000, 560));
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout());
 
         cboFiltro.addItem("TODOS");
         for (String estado : servicio.estados()) {
             cboFiltro.addItem(estado);
         }
 
-        JButton btnNueva = new JButton("Nueva reserva");
-        JButton btnConfirmar = new JButton("Confirmar");
-        JButton btnCancelar = new JButton("Cancelar reserva");
-        JButton btnNoShow = new JButton("Marcar no-show");
-        JButton btnAnticipo = new JButton("Registrar anticipo");
-        JButton btnHistorial = new JButton("Ver historial");
-        JButton btnActualizar = new JButton("Actualizar");
+        JButton btnNueva = Tema.boton("Nueva reserva", Tema.Variante.ACENTO);
+        JButton btnConfirmar = Tema.boton("Confirmar", Tema.Variante.PRIMARIO);
+        JButton btnCancelar = Tema.boton("Cancelar reserva", Tema.Variante.PELIGRO);
+        JButton btnNoShow = Tema.boton("Marcar no-show", Tema.Variante.SECUNDARIO);
+        JButton btnAnticipo = Tema.boton("Registrar anticipo", Tema.Variante.SECUNDARIO);
+        JButton btnHistorial = Tema.boton("Ver historial", Tema.Variante.SECUNDARIO);
+        JButton btnActualizar = Tema.boton("Actualizar", Tema.Variante.SECUNDARIO);
 
-        JPanel norte = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        norte.add(new JLabel("Estado:"));
-        norte.add(cboFiltro);
-        norte.add(btnActualizar);
-        norte.add(btnNueva);
+        JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        filtros.setOpaque(false);
+        filtros.add(Tema.etiqueta("Filtrar por estado:"));
+        filtros.add(cboFiltro);
+        filtros.add(btnActualizar);
+        JPanel barraSuperior = new JPanel(new BorderLayout());
+        barraSuperior.setOpaque(false);
+        barraSuperior.add(filtros, BorderLayout.WEST);
+        barraSuperior.add(btnNueva, BorderLayout.EAST);
 
-        JPanel sur = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        sur.add(btnConfirmar);
-        sur.add(btnCancelar);
-        sur.add(btnNoShow);
-        sur.add(btnAnticipo);
-        sur.add(btnHistorial);
-        sur.add(btnDeshacer);
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        acciones.setOpaque(false);
+        acciones.add(btnConfirmar);
+        acciones.add(btnCancelar);
+        acciones.add(btnNoShow);
+        acciones.add(btnAnticipo);
+        acciones.add(btnHistorial);
+        acciones.add(btnDeshacer);
+        JPanel pie = new JPanel(new BorderLayout(0, 6));
+        pie.setOpaque(false);
+        JPanel contador = new JPanel(new BorderLayout());
+        contador.setOpaque(false);
+        contador.add(Tema.contador(modelo), BorderLayout.EAST);
+        pie.add(contador, BorderLayout.NORTH);
+        pie.add(acciones, BorderLayout.SOUTH);
 
-        add(norte, BorderLayout.NORTH);
-        add(new JScrollPane(tabla), BorderLayout.CENTER);
-        add(sur, BorderLayout.SOUTH);
+        JPanel contenidoTabla = new JPanel(new BorderLayout(0, 12));
+        contenidoTabla.setOpaque(false);
+        contenidoTabla.add(barraSuperior, BorderLayout.NORTH);
+        contenidoTabla.add(Tema.scroll(tabla), BorderLayout.CENTER);
+        contenidoTabla.add(pie, BorderLayout.SOUTH);
+
+        JPanel cuerpo = Tema.cuerpo();
+        cuerpo.add(new Tarjeta("Listado de reservas", contenidoTabla), BorderLayout.CENTER);
+
+        add(new Encabezado("Reservas", "Cree, confirme, cancele y consulte el historial de cada reserva",
+                Iconos.RESERVAS), BorderLayout.NORTH);
+        add(cuerpo, BorderLayout.CENTER);
 
         cboFiltro.addActionListener(e -> cargarTabla());
         btnActualizar.addActionListener(e -> cargarTabla());
@@ -105,6 +132,7 @@ public class FrmReservas extends JFrame {
 
         actualizarBotonDeshacer();
         cargarTabla();
+        Tema.preparar(this, Iconos.RESERVAS);
     }
 
     private void cargarTabla() {
@@ -221,7 +249,7 @@ public class FrmReservas extends JFrame {
         }
         JTextField txtReferencia = new JTextField();
 
-        JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
+        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
         panel.add(new JLabel("Anticipo requerido (S/):"));
         panel.add(new JLabel(String.format(Locale.US, "%.2f", servicio.anticipoRequerido(r))));
         panel.add(new JLabel("Monto a pagar (S/):"));
@@ -230,6 +258,7 @@ public class FrmReservas extends JFrame {
         panel.add(cboMetodo);
         panel.add(new JLabel("Referencia (opcional):"));
         panel.add(txtReferencia);
+        Tema.dialogo(panel);
 
         int opcion = JOptionPane.showConfirmDialog(this, panel, "Anticipo de " + r.getCodigo(),
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -283,9 +312,9 @@ public class FrmReservas extends JFrame {
                         .append(h.detalle() == null ? "" : h.detalle()).append('\n');
             }
             JTextArea area = new JTextArea(sb.toString(), 10, 70);
-            area.setEditable(false);
+            Tema.estilizarArea(area);
             area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-            JOptionPane.showMessageDialog(this, new JScrollPane(area),
+            JOptionPane.showMessageDialog(this, Tema.scroll(area),
                     "Historial de " + r.getCodigo(), JOptionPane.INFORMATION_MESSAGE);
         } catch (AccesoDatosException ex) {
             error(ex);

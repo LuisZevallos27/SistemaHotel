@@ -11,6 +11,11 @@ import hotel.modelo.operacion.TareaLimpieza;
 import hotel.controlador.HabitacionService;
 import hotel.controlador.LimpiezaService;
 import hotel.controlador.MantenimientoService;
+import hotel.vista.estilo.Encabezado;
+import hotel.vista.estilo.Iconos;
+import hotel.vista.estilo.Tabla;
+import hotel.vista.estilo.Tarjeta;
+import hotel.vista.estilo.Tema;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -46,12 +51,12 @@ public class FrmOperaciones extends JFrame {
     private final JComboBox<String> cboFiltroTareas = new JComboBox<>();
     private final DefaultTableModel modeloTareas = crearModelo(new String[]{
         "Habitación", "Tipo", "Estado", "Asignado a", "Creada"});
-    private final JTable tablaTareas = new JTable(modeloTareas);
+    private final JTable tablaTareas = new Tabla(modeloTareas);
 
     private final JComboBox<String> cboFiltroReportes = new JComboBox<>();
     private final DefaultTableModel modeloReportes = crearModelo(new String[]{
         "Habitación", "Descripción", "Prioridad", "Estado", "Reportado", "Cerrado", "Reportó"});
-    private final JTable tablaReportes = new JTable(modeloReportes);
+    private final JTable tablaReportes = new Tabla(modeloReportes);
 
     public FrmOperaciones(LimpiezaService limpieza, MantenimientoService mantenimiento,
             HabitacionService habitaciones, Integer idUsuario) {
@@ -62,8 +67,10 @@ public class FrmOperaciones extends JFrame {
 
         setTitle("Operaciones - Limpieza y mantenimiento");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(1000, 520);
+        setSize(1120, 680);
+        setMinimumSize(new java.awt.Dimension(920, 560));
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
         cboFiltroTareas.addItem("TODAS");
         for (String estado : limpieza.estados()) {
@@ -77,30 +84,52 @@ public class FrmOperaciones extends JFrame {
         JTabbedPane pestanas = new JTabbedPane();
         pestanas.addTab("Limpieza", panelLimpieza());
         pestanas.addTab("Mantenimiento", panelMantenimiento());
-        add(pestanas);
+
+        JPanel cuerpo = Tema.cuerpo();
+        cuerpo.add(pestanas, BorderLayout.CENTER);
+
+        add(new Encabezado("Operaciones", "Coordine la limpieza de habitaciones y los reportes de mantenimiento",
+                Iconos.OPERACIONES), BorderLayout.NORTH);
+        add(cuerpo, BorderLayout.CENTER);
 
         cargarTareas();
         cargarReportes();
+        Tema.preparar(this, Iconos.OPERACIONES);
+    }
+
+    private JPanel tarjetaTabla(String titulo, JComboBox<String> filtro, JButton btnActualizar,
+            JTable tabla, DefaultTableModel modelo, JPanel acciones) {
+        JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        filtros.setOpaque(false);
+        filtros.add(Tema.etiqueta("Filtrar por estado:"));
+        filtros.add(filtro);
+        filtros.add(btnActualizar);
+
+        JPanel pie = new JPanel(new BorderLayout());
+        pie.setOpaque(false);
+        pie.add(acciones, BorderLayout.WEST);
+        pie.add(Tema.contador(modelo), BorderLayout.EAST);
+
+        JPanel contenido = new JPanel(new BorderLayout(0, 12));
+        contenido.setOpaque(false);
+        contenido.add(filtros, BorderLayout.NORTH);
+        contenido.add(Tema.scroll(tabla), BorderLayout.CENTER);
+        contenido.add(pie, BorderLayout.SOUTH);
+
+        JPanel marco = new JPanel(new BorderLayout());
+        marco.setOpaque(false);
+        marco.setBorder(javax.swing.BorderFactory.createEmptyBorder(14, 0, 0, 0));
+        marco.add(new Tarjeta(titulo, contenido), BorderLayout.CENTER);
+        return marco;
     }
 
     private JPanel panelLimpieza() {
-        JButton btnActualizar = new JButton("Actualizar");
-        JButton btnAsignar = new JButton("Asignar a...");
-        JButton btnAvanzar = new JButton("Avanzar estado");
+        JButton btnActualizar = Tema.boton("Actualizar", Tema.Variante.SECUNDARIO);
+        JButton btnAsignar = Tema.boton("Asignar a...", Tema.Variante.SECUNDARIO);
+        JButton btnAvanzar = Tema.boton("Avanzar estado", Tema.Variante.PRIMARIO);
 
-        JPanel norte = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        norte.add(new JLabel("Estado:"));
-        norte.add(cboFiltroTareas);
-        norte.add(btnActualizar);
-
-        JPanel sur = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        sur.add(btnAsignar);
-        sur.add(btnAvanzar);
-
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
-        panel.add(norte, BorderLayout.NORTH);
-        panel.add(new JScrollPane(tablaTareas), BorderLayout.CENTER);
-        panel.add(sur, BorderLayout.SOUTH);
+        JPanel panel = tarjetaTabla("Tareas de limpieza", cboFiltroTareas, btnActualizar,
+                tablaTareas, modeloTareas, Tema.barra(FlowLayout.LEFT, btnAsignar, btnAvanzar));
 
         cboFiltroTareas.addActionListener(e -> cargarTareas());
         btnActualizar.addActionListener(e -> cargarTareas());
@@ -110,23 +139,12 @@ public class FrmOperaciones extends JFrame {
     }
 
     private JPanel panelMantenimiento() {
-        JButton btnActualizar = new JButton("Actualizar");
-        JButton btnReportar = new JButton("Reportar daño");
-        JButton btnCerrar = new JButton("Cerrar reporte");
+        JButton btnActualizar = Tema.boton("Actualizar", Tema.Variante.SECUNDARIO);
+        JButton btnReportar = Tema.boton("Reportar daño", Tema.Variante.ACENTO);
+        JButton btnCerrar = Tema.boton("Cerrar reporte", Tema.Variante.PRIMARIO);
 
-        JPanel norte = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        norte.add(new JLabel("Estado:"));
-        norte.add(cboFiltroReportes);
-        norte.add(btnActualizar);
-
-        JPanel sur = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        sur.add(btnReportar);
-        sur.add(btnCerrar);
-
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
-        panel.add(norte, BorderLayout.NORTH);
-        panel.add(new JScrollPane(tablaReportes), BorderLayout.CENTER);
-        panel.add(sur, BorderLayout.SOUTH);
+        JPanel panel = tarjetaTabla("Reportes de mantenimiento", cboFiltroReportes, btnActualizar,
+                tablaReportes, modeloReportes, Tema.barra(FlowLayout.LEFT, btnReportar, btnCerrar));
 
         cboFiltroReportes.addActionListener(e -> cargarReportes());
         btnActualizar.addActionListener(e -> cargarReportes());
@@ -232,13 +250,14 @@ public class FrmOperaciones extends JFrame {
             cboPrioridad.setSelectedItem(Prioridad.MEDIA);
             JTextField txtDescripcion = new JTextField(30);
 
-            JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
+            JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
             panel.add(new JLabel("Habitación:"));
             panel.add(cboHabitacion);
             panel.add(new JLabel("Prioridad:"));
             panel.add(cboPrioridad);
             panel.add(new JLabel("Descripción del daño:"));
             panel.add(txtDescripcion);
+            Tema.dialogo(panel);
 
             int opcion = JOptionPane.showConfirmDialog(this, panel, "Reportar daño",
                     JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);

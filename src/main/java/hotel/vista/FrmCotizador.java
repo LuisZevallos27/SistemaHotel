@@ -4,20 +4,22 @@ import hotel.excepcion.AccesoDatosException;
 import hotel.excepcion.NegocioException;
 import hotel.controlador.CotizadorService;
 import hotel.modelo.tarifa.Cotizacion;
+import hotel.vista.estilo.Encabezado;
+import hotel.vista.estilo.Iconos;
+import hotel.vista.estilo.Tarjeta;
+import hotel.vista.estilo.Tema;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Font;
-import java.awt.GridLayout;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
@@ -34,6 +36,7 @@ public class FrmCotizador extends JFrame {
     private final JTextField txtDocumento = new JTextField();
     private final JTextField txtPromocion = new JTextField();
     private final JTextArea txtResultado = new JTextArea(14, 50);
+    private final JLabel lblTotal = new JLabel("S/ 0.00");
 
     public FrmCotizador(CotizadorService servicio) {
         this.servicio = servicio;
@@ -46,35 +49,58 @@ public class FrmCotizador extends JFrame {
 
         setTitle("Cotizador de estadía - Hotel");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(640, 600);
+        setSize(1020, 680);
+        setMinimumSize(new java.awt.Dimension(900, 600));
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout());
 
-        JPanel form = new JPanel(new GridLayout(6, 2, 5, 5));
-        form.setBorder(BorderFactory.createTitledBorder("Datos de la cotización"));
-        form.add(new JLabel("Tipo de habitación:"));
-        form.add(cboTipo);
-        form.add(new JLabel("Canal de reserva:"));
-        form.add(cboCanal);
-        form.add(new JLabel("Entrada (AAAA-MM-DD):"));
-        form.add(txtEntrada);
-        form.add(new JLabel("Salida (AAAA-MM-DD):"));
-        form.add(txtSalida);
-        form.add(new JLabel("Documento del cliente (opcional):"));
-        form.add(txtDocumento);
-        form.add(new JLabel("Código de promoción (opcional):"));
-        form.add(txtPromocion);
+        JButton btnCotizar = Tema.boton("Cotizar", Tema.Variante.ACENTO, Iconos.COTIZADOR);
 
-        JButton btnCotizar = new JButton("Cotizar");
-        JPanel norte = new JPanel(new BorderLayout());
-        norte.add(form, BorderLayout.CENTER);
-        norte.add(btnCotizar, BorderLayout.SOUTH);
+        JPanel form = Tema.apilar(12,
+                Tema.campo("Tipo de habitación", cboTipo),
+                Tema.campo("Canal de reserva", cboCanal),
+                Tema.fila(new int[]{1, 1},
+                        Tema.campo("Entrada (AAAA-MM-DD)", txtEntrada),
+                        Tema.campo("Salida (AAAA-MM-DD)", txtSalida)),
+                Tema.campo("Documento del cliente (opcional)", txtDocumento),
+                Tema.campo("Código de promoción (opcional)", txtPromocion));
+        JPanel contenidoForm = new JPanel(new BorderLayout(0, 18));
+        contenidoForm.setOpaque(false);
+        contenidoForm.add(form, BorderLayout.NORTH);
+        contenidoForm.add(btnCotizar, BorderLayout.SOUTH);
+        Tarjeta tarjetaForm = new Tarjeta("Datos de la cotización", contenidoForm);
+        tarjetaForm.setPreferredSize(new java.awt.Dimension(390, 0));
 
-        txtResultado.setEditable(false);
-        txtResultado.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+        Tema.estilizarArea(txtResultado);
+        txtResultado.setLineWrap(true);
+        txtResultado.setWrapStyleWord(true);
+        txtResultado.setText("Complete los datos y pulse \"Cotizar\" para ver el detalle del cálculo.");
 
-        add(norte, BorderLayout.NORTH);
-        add(new JScrollPane(txtResultado), BorderLayout.CENTER);
+        JLabel etiquetaTotal = new JLabel("TOTAL ESTIMADO");
+        etiquetaTotal.setFont(Tema.fuente(Font.BOLD, 12));
+        etiquetaTotal.setForeground(new Color(0xC3CEDD));
+        lblTotal.setFont(Tema.fuente(Font.BOLD, 28));
+        lblTotal.setForeground(Tema.DORADO);
+        JPanel totalTextos = new JPanel(new BorderLayout());
+        totalTextos.setOpaque(false);
+        totalTextos.add(etiquetaTotal, BorderLayout.WEST);
+        totalTextos.add(lblTotal, BorderLayout.EAST);
+        Tarjeta chipTotal = new Tarjeta(null, totalTextos, Tema.NAVY, 18);
+
+        JPanel contenidoResultado = new JPanel(new BorderLayout(0, 14));
+        contenidoResultado.setOpaque(false);
+        contenidoResultado.add(Tema.scroll(txtResultado), BorderLayout.CENTER);
+        contenidoResultado.add(chipTotal, BorderLayout.SOUTH);
+
+        JPanel cuerpo = Tema.cuerpo();
+        cuerpo.setLayout(new BorderLayout(18, 0));
+        cuerpo.add(tarjetaForm, BorderLayout.WEST);
+        cuerpo.add(new Tarjeta("Detalle del cálculo", contenidoResultado), BorderLayout.CENTER);
+
+        add(new Encabezado("Cotizador de tarifas", "Calcule el precio de una estadía según temporada, canal y descuentos",
+                Iconos.COTIZADOR), BorderLayout.NORTH);
+        add(cuerpo, BorderLayout.CENTER);
+        Tema.preparar(this, Iconos.COTIZADOR);
 
         btnCotizar.addActionListener(e -> cotizar());
     }
@@ -114,6 +140,7 @@ public class FrmCotizador extends JFrame {
             sb.append("  ").append(linea).append('\n');
         }
         sb.append(String.format(Locale.US, "%nTOTAL: S/ %.2f", c.total()));
+        lblTotal.setText(String.format(Locale.US, "S/ %.2f", c.total()));
         txtResultado.setText(sb.toString());
         txtResultado.setCaretPosition(0);
     }

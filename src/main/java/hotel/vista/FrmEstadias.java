@@ -15,6 +15,11 @@ import hotel.modelo.habitacion.HabitacionLibre;
 import hotel.modelo.reserva.Reserva;
 import hotel.controlador.CheckOutService;
 import hotel.controlador.EstadiaService;
+import hotel.vista.estilo.Encabezado;
+import hotel.vista.estilo.Iconos;
+import hotel.vista.estilo.Tabla;
+import hotel.vista.estilo.Tarjeta;
+import hotel.vista.estilo.Tema;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -53,11 +58,11 @@ public class FrmEstadias extends JFrame {
 
     private final DefaultTableModel modeloLlegadas = crearModelo(new String[]{
         "Código", "Cliente", "Documento", "Tipo", "Hab. reservada", "Entrada", "Salida", "Canal", "Total (S/)"});
-    private final JTable tablaLlegadas = new JTable(modeloLlegadas);
+    private final JTable tablaLlegadas = new Tabla(modeloLlegadas);
 
     private final DefaultTableModel modeloEstadias = crearModelo(new String[]{
         "Reserva", "Cliente", "Documento", "Habitación", "Check-in", "Salida prevista", "Alojamiento (S/)"});
-    private final JTable tablaEstadias = new JTable(modeloEstadias);
+    private final JTable tablaEstadias = new Tabla(modeloEstadias);
 
     public FrmEstadias(EstadiaService servicio, CheckOutService checkOut, Integer idUsuario) {
         this.servicio = servicio;
@@ -66,31 +71,31 @@ public class FrmEstadias extends JFrame {
 
         setTitle("Estadías - Hotel");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(1050, 520);
+        setSize(1180, 680);
+        setMinimumSize(new java.awt.Dimension(960, 560));
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
-        JButton btnCheckIn = new JButton("Hacer check-in");
-        JPanel panelLlegadas = new JPanel(new BorderLayout(5, 5));
-        panelLlegadas.add(new JScrollPane(tablaLlegadas), BorderLayout.CENTER);
-        JPanel botonesLlegadas = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        botonesLlegadas.add(btnCheckIn);
-        panelLlegadas.add(botonesLlegadas, BorderLayout.SOUTH);
+        JButton btnCheckIn = Tema.boton("Hacer check-in", Tema.Variante.PRIMARIO);
+        JPanel panelLlegadas = panelTabla("Reservas con llegada hoy", tablaLlegadas, modeloLlegadas,
+                Tema.barra(FlowLayout.LEFT, btnCheckIn));
 
-        JButton btnConsumo = new JButton("Registrar consumo");
-        JButton btnCuenta = new JButton("Ver cuenta");
-        JButton btnCheckOut = new JButton("Hacer check-out");
-        JPanel panelEstadias = new JPanel(new BorderLayout(5, 5));
-        panelEstadias.add(new JScrollPane(tablaEstadias), BorderLayout.CENTER);
-        JPanel botonesEstadias = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        botonesEstadias.add(btnConsumo);
-        botonesEstadias.add(btnCuenta);
-        botonesEstadias.add(btnCheckOut);
-        panelEstadias.add(botonesEstadias, BorderLayout.SOUTH);
+        JButton btnConsumo = Tema.boton("Registrar consumo", Tema.Variante.SECUNDARIO);
+        JButton btnCuenta = Tema.boton("Ver cuenta", Tema.Variante.SECUNDARIO);
+        JButton btnCheckOut = Tema.boton("Hacer check-out", Tema.Variante.ACENTO);
+        JPanel panelEstadias = panelTabla("Huéspedes alojados actualmente", tablaEstadias, modeloEstadias,
+                Tema.barra(FlowLayout.LEFT, btnConsumo, btnCuenta, btnCheckOut));
 
         JTabbedPane pestanas = new JTabbedPane();
         pestanas.addTab("Llegadas de hoy (check-in)", panelLlegadas);
         pestanas.addTab("Estadías en curso", panelEstadias);
-        add(pestanas);
+
+        JPanel cuerpo = Tema.cuerpo();
+        cuerpo.add(pestanas, BorderLayout.CENTER);
+
+        add(new Encabezado("Estadías", "Check-in, consumos, cuenta del huésped y check-out con comprobante",
+                Iconos.ESTADIAS), BorderLayout.NORTH);
+        add(cuerpo, BorderLayout.CENTER);
 
         btnCheckIn.addActionListener(e -> hacerCheckIn());
         btnConsumo.addActionListener(e -> registrarConsumo());
@@ -98,6 +103,23 @@ public class FrmEstadias extends JFrame {
         btnCheckOut.addActionListener(e -> hacerCheckOut());
 
         cargarTablas();
+        Tema.preparar(this, Iconos.ESTADIAS);
+    }
+
+    private JPanel panelTabla(String titulo, JTable tabla, DefaultTableModel modelo, JPanel acciones) {
+        JPanel pie = new JPanel(new BorderLayout());
+        pie.setOpaque(false);
+        pie.add(acciones, BorderLayout.WEST);
+        pie.add(Tema.contador(modelo), BorderLayout.EAST);
+        JPanel contenido = new JPanel(new BorderLayout(0, 12));
+        contenido.setOpaque(false);
+        contenido.add(Tema.scroll(tabla), BorderLayout.CENTER);
+        contenido.add(pie, BorderLayout.SOUTH);
+        JPanel marco = new JPanel(new BorderLayout());
+        marco.setOpaque(false);
+        marco.setBorder(javax.swing.BorderFactory.createEmptyBorder(14, 0, 0, 0));
+        marco.add(new Tarjeta(titulo, contenido), BorderLayout.CENTER);
+        return marco;
     }
 
     private DefaultTableModel crearModelo(String[] columnas) {
@@ -181,11 +203,12 @@ public class FrmEstadias extends JFrame {
         try {
             JComboBox<Servicio> cboServicio = new JComboBox<>(servicio.servicios().toArray(new Servicio[0]));
             JSpinner spnCantidad = new JSpinner(new SpinnerNumberModel(1, 1, 99, 1));
-            JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
+            JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
             panel.add(new JLabel("Servicio:"));
             panel.add(cboServicio);
             panel.add(new JLabel("Cantidad:"));
             panel.add(spnCantidad);
+            Tema.dialogo(panel);
 
             int opcion = JOptionPane.showConfirmDialog(this, panel,
                     "Consumo de " + estadia.cliente() + " (Hab. " + estadia.habitacion() + ")",
@@ -233,7 +256,7 @@ public class FrmEstadias extends JFrame {
             JComboBox<MetodoPago> cboMetodo = new JComboBox<>(MetodoPago.values());
             JTextField txtReferencia = new JTextField();
 
-            JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
+            JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
             panel.add(new JLabel("Total de la cuenta:"));
             panel.add(new JLabel(String.format(Locale.US, "S/ %.2f", cuenta.total())));
             panel.add(new JLabel("Anticipos pagados:"));
@@ -246,6 +269,7 @@ public class FrmEstadias extends JFrame {
             panel.add(cboMetodo);
             panel.add(new JLabel("Referencia (opcional):"));
             panel.add(txtReferencia);
+            Tema.dialogo(panel);
 
             int opcion = JOptionPane.showConfirmDialog(this, panel,
                     "Check-out de " + estadia.cliente() + " (Hab. " + estadia.habitacion() + ")",
@@ -331,9 +355,9 @@ public class FrmEstadias extends JFrame {
 
     private void mostrarTexto(String texto, String titulo, int filas, int columnas) {
         JTextArea area = new JTextArea(texto, filas, columnas);
-        area.setEditable(false);
+        Tema.estilizarArea(area);
         area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        JOptionPane.showMessageDialog(this, new JScrollPane(area), titulo,
+        JOptionPane.showMessageDialog(this, Tema.scroll(area), titulo,
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
